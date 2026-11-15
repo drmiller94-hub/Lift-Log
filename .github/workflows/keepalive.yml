@@ -1,14 +1,149 @@
-name: Keep Supabase awake
+name: Keep Supabase active
+
 on:
   schedule:
-    - cron: '17 14 */3 * *'   # every 3 days, ~10 am Eastern
-  workflow_dispatch:           # adds a "Run workflow" button for testing
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   ping:
+    concurrency:
+      group: lift-log-keepalive-${{ github.repository }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Ping the database
+      - name: Check Supabase health
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
-          curl -fsS -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/ping" \
-            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
-            -H "Content-Type: application/json" -d '{}'
+          python3 - <<'PY'
+          import json, os, sys, time, urllib.error, urllib.request
+
+          base = os.environ.get("SUPABASE_URL", "").rstrip("/")
+          key = os.environ.get("SUPABASE_KEY", "")
+          if not base.startswith("https://") or not key:
+              sys.exit("Set SUPABASE_URL and SUPABASE_KEY repository secrets.")
+          if key.startswith("sb_secret_"):
+              sys.exit("SUPABASE_KEY must be the public anon/publishable key, never a secret key.")
+          if key.count(".") == 2:
+              try:
+                  import base64
+                  claims = json.loads(base64.urlsafe_b64decode(key.split(".")[1] + "=="))
+                  if claims.get("role") == "service_role":
+                      sys.exit("SUPABASE_KEY must be the public anon key, never service_role.")
+              except (ValueError, json.JSONDecodeError):
+                  pass
+          request = urllib.request.Request(
+              base + "/rest/v1/rpc/liftlog_ping", data=b"{}", method="POST",
+              headers={"apikey": key, "Content-Type": "application/json"})
+          error_summary = "unknown error"
+          for attempt in range(3):
+              try:
+                  with urllib.request.urlopen(request, timeout=15) as response:
+                      if response.status != 200:
+                          raise RuntimeError("unexpected HTTP status " + str(response.status))
+                      result = json.loads(response.read(65536))
+                  if not isinstance(result, dict) or result.get("ok") is not True:
+                      raise RuntimeError("health response did not include ok=true")
+                  stamp = result.get("server_time")
+                  if not isinstance(stamp, str):
+                      raise RuntimeError("health response did not include server_time")
+                  from datetime import datetime
+                  datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+                  print("Supabase health check succeeded.")
+                  break
+              except Exception as exc:
+                  if isinstance(exc, urllib.error.HTTPError):
+                      error_summary = "HTTP " + str(exc.code)
+                  elif isinstance(exc, urllib.error.URLError):
+                      error_summary = "network error"
+                  elif isinstance(exc, json.JSONDecodeError):
+                      error_summary = "invalid JSON response"
+                  elif isinstance(exc, ValueError):
+                      error_summary = "invalid server_time"
+                  else:
+                      error_summary = type(exc).__name__
+                  if attempt < 2:
+                      time.sleep(2 ** attempt)
+          else:
+              sys.exit("Supabase health check failed after retries: " + error_summary + ". Check the SQL migration, URL/key, and project status.")
+          PY
+
+      # GitHub may disable scheduled workflows in public repositories after
+      # 60 days without activity. This intentional monthly metadata commit keeps
+      # the default branch active; it is independent of the Supabase check.
+      - name: Refresh repository activity marker
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          python3 - <<'PY'
+          import base64, datetime, json, os, sys, urllib.error, urllib.parse, urllib.request
+
+          token = os.environ.get("GH_TOKEN", "")
+          repo = os.environ.get("REPOSITORY", "")
+          branch = os.environ.get("DEFAULT_BRANCH", "")
+          if not token or not repo or not branch:
+              sys.exit("Cannot update keepalive marker: missing GitHub context or token.")
+          api = "https://api.github.com/repos/" + repo + "/contents/.github/keepalive-heartbeat.txt"
+          headers = {"Authorization": "Bearer " + token,
+                     "Accept": "application/vnd.github+json",
+                     "X-GitHub-Api-Version": "2022-11-28",
+                     "User-Agent": "lift-log-keepalive"}
+          get_request = urllib.request.Request(api + "?ref=" + urllib.parse.quote(branch, safe=""), headers=headers)
+          sha = None
+          marker_date = None
+          try:
+              with urllib.request.urlopen(get_request, timeout=20) as response:
+                  existing = json.loads(response.read(65536))
+              sha = existing.get("sha")
+              content = base64.b64decode(existing.get("content", "")).decode("utf-8", "replace").strip()
+              try:
+                  marker_date = datetime.date.fromisoformat(content)
+              except ValueError:
+                  pass
+          except urllib.error.HTTPError as exc:
+              if exc.code != 404:
+                  sys.exit("GitHub marker read failed with HTTP " + str(exc.code))
+
+          today = datetime.datetime.now(datetime.timezone.utc).date()
+          age = (today - marker_date).days if marker_date else None
+          if age is not None and 0 <= age < 30:
+              print("Repository activity marker is current.")
+              sys.exit(0)
+          body = {"message": "chore: refresh keepalive activity marker",
+                  "content": base64.b64encode((today.isoformat() + "\n").encode()).decode(),
+                  "branch": branch}
+          if sha:
+              body["sha"] = sha
+          payload = json.dumps(body).encode()
+          for attempt in range(2):
+              put = urllib.request.Request(api, data=payload, method="PUT",
+                                           headers={**headers, "Content-Type": "application/json"})
+              try:
+                  with urllib.request.urlopen(put, timeout=20) as response:
+                      if response.status not in (200, 201):
+                          raise RuntimeError("unexpected HTTP status " + str(response.status))
+                  print("Repository activity marker refreshed.")
+                  sys.exit(0)
+              except urllib.error.HTTPError as exc:
+                  if exc.code == 409 and attempt == 0:
+                      try:
+                          with urllib.request.urlopen(get_request, timeout=20) as response:
+                              sha = json.loads(response.read(65536)).get("sha")
+                          if sha:
+                              body["sha"] = sha
+                              payload = json.dumps(body).encode()
+                              continue
+                      except Exception:
+                          pass
+                  sys.exit("GitHub marker write failed with HTTP " + str(exc.code) + ". Check contents:write and branch rules.")
+          sys.exit("GitHub marker update could not be completed.")
+          PY
