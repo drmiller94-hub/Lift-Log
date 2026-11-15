@@ -461,9 +461,13 @@ nav button{height:56px;padding:0;font:600 15px/1 var(--fontc);letter-spacing:.12
 nav button svg{display:none!important}
 nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--accent)}
 nav button.running::after{top:auto;bottom:12px;left:50%;margin-left:-3px;width:6px;height:6px;box-shadow:none}
-body.wo nav{display:none}
-body.wo{padding-bottom:calc(var(--safe-b) + 150px)}
-body.wo.resting{padding-bottom:calc(var(--safe-b) + 230px)}
+#saveBanner{position:sticky;top:calc(var(--safe-t) + 44px);z-index:7;max-width:568px;margin:0 auto 10px;background:var(--card2)}
+#saveBanner[hidden]{display:none}
+.liftswitch{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0 10px}
+.hset{margin:8px 0;display:grid;grid-template-columns:50px 1fr 1fr}
+.hset input{width:100%;margin:0}
+body.wo{padding-bottom:calc(var(--safe-b) + 199px)}
+body.wo.resting{padding-bottom:calc(var(--safe-b) + 279px)}
 body.wo #hprog{display:none}
 /* shared */
 .eyb{font:700 .72rem/1.2 var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
@@ -528,14 +532,16 @@ input.bigv:focus{outline:2px solid var(--deep);outline-offset:2px}
 .nx b{font:600 1.18rem/1.1 var(--fontc);color:var(--text);text-transform:uppercase;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nx span{font:500 1.06rem/1 var(--fontc);white-space:nowrap}
 .nx.t,.nx.t b{color:var(--faint)}.nx.t b{font-size:1.06rem}
-.rail{position:fixed;left:0;right:0;bottom:0;padding:28px max(12px,env(safe-area-inset-right,0px)) calc(var(--safe-b) + 16px) max(12px,env(safe-area-inset-left,0px));background:linear-gradient(to top,var(--bg) 78%,rgba(19,22,20,0));z-index:6;max-width:576px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.rail{position:fixed;left:0;right:0;bottom:calc(var(--safe-b) + 49px);padding:28px max(12px,env(safe-area-inset-right,0px)) 16px max(12px,env(safe-area-inset-left,0px));background:linear-gradient(to top,var(--bg) 78%,rgba(19,22,20,0));z-index:6;max-width:576px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
 .rhint{text-align:center;font-size:var(--sub);color:var(--muted)}
 body.resting .rhint{visibility:hidden}
 .rbtns{display:grid;grid-template-columns:64px minmax(0,1fr);gap:8px}
+.rbtns.complete{grid-template-columns:54px repeat(2,minmax(0,1fr))}
+.rbtns.complete .logb{font-size:1.15rem;justify-content:center;padding:0 4px}
 .rbtns .menu{height:72px;border:0;border-radius:10px;background:var(--card);font-size:26px;color:var(--text)}
 .logb{height:72px;border:0;border-radius:10px;background:var(--accent);color:var(--ink);font:700 1.65rem/1 var(--fontc);letter-spacing:.08em;display:flex;align-items:center;justify-content:space-between;padding:0 22px;transition:transform .12s}
 .logb:active{transform:scale(.98)}
-#rest{bottom:calc(var(--safe-b) + 16px + 72px + 8px);left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));max-width:576px;background:var(--card2);border-radius:10px}
+#rest{bottom:calc(var(--safe-b) + 49px + 16px + 72px + 8px);left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));max-width:576px;background:var(--card2);border-radius:10px}
 #rest .tm{font:700 2.1rem/1 var(--fontc)}
 #restLbl{font-size:var(--foot);color:var(--muted)}
 #rest .btn.sm{background:var(--card);padding:10px 11px;min-width:48px}#rest .btn.sm.primary{background:var(--accent)}
@@ -552,6 +558,7 @@ nav button{letter-spacing:.08em;font-size:14px}
 </head>
 <body>
 <header id="hdr"><h1 id="title">Lift Log</h1><i id="hprog" aria-hidden="true"></i><button class="pill" id="syncPill">On this device</button></header>
+<div id="saveBanner" class="card small note" role="alert" hidden><b>Device save issue.</b> <span id="saveMessage"></span> <button class="btn sm" data-act="retrylocal">Retry saving</button> <button class="btn sm" data-act="export">Export</button></div>
 <main id="view"></main>
 <div id="rest" hidden><div class="row between"><div class="row" style="gap:12px;min-width:0"><svg id="rring" width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="19" fill="none" stroke-width="4" class="rr-t"/><circle id="rrArc" cx="23" cy="23" r="19" fill="none" stroke-width="4" stroke-linecap="round" class="rr-a" transform="rotate(-90 23 23)" stroke-dasharray="119.4 119.4"/></svg><div style="min-width:0"><div class="small muted" id="restLbl">Rest</div><div class="tm" id="restTm">0:00</div></div></div>
   <div class="row"><button class="btn sm" id="restMinus" aria-label="15 seconds less">−15</button><button class="btn sm" id="restPlus" aria-label="15 seconds more">+15</button><button class="btn sm primary" id="restSkip">Skip</button></div></div><i class="bar" id="restBar"></i></div>
@@ -579,13 +586,13 @@ const PROGRAMS={
     desc:'Full-body strength. Hinge and press day: RDL, overhead press, pulldown, split squat.',ex:[
     ex('rdl','Romanian Deadlift',3,8,8,5),ex('ohp','Overhead Press',3,10,10,5),
     ex('lat_pulldown','Lat Pulldown',3,12,12,5),ex('bulgarian_split_squat','Bulgarian Split Squat',2,10,10,2.5,'per dumbbell, each leg')]},
-  Q1:{label:'Quick · Push/Pull',tag:'Q1',color:'--tQ',group:'Q',mode:'superset',rest:60,est:'~12 min',
+  Q1:{label:'Quick · Push/Pull',tag:'Q1',color:'--tQ',group:'Q',mode:'quick',rest:60,est:'~12 min',
     desc:'Bench paired with row. Alternate the two lifts with ~60 s between, 3 rounds.',ex:[
     ex('bench','Bench Press',3,6,12,5),ex('row','Barbell Row',3,6,12,5)]},
-  Q2:{label:'Quick · Squat/Pull',tag:'Q2',color:'--tQ',group:'Q',mode:'superset',rest:60,est:'~12 min',
+  Q2:{label:'Quick · Squat/Pull',tag:'Q2',color:'--tQ',group:'Q',mode:'quick',rest:60,est:'~12 min',
     desc:'Squat paired with lat pulldown. Alternate the two lifts with ~60 s between, 3 rounds.',ex:[
     ex('squat','Squat',3,6,12,5),ex('lat_pulldown','Lat Pulldown',3,6,12,5)]},
-  Q3:{label:'Quick · Hinge/Press',tag:'Q3',color:'--tQ',group:'Q',mode:'superset',rest:60,est:'~12 min',
+  Q3:{label:'Quick · Hinge/Press',tag:'Q3',color:'--tQ',group:'Q',mode:'quick',rest:60,est:'~12 min',
     desc:'RDL paired with overhead press. Alternate the two lifts with ~60 s between, 3 rounds.',ex:[
     ex('rdl','Romanian Deadlift',3,6,12,5),ex('ohp','Overhead Press',3,6,12,5)]}
 };
@@ -632,22 +639,49 @@ const DB={db:null,
   put(store,v){return this.tx(store,'readwrite',s=>{s.put(v);});},
   putMany(store,vs){return this.tx(store,'readwrite',s=>{vs.forEach(v=>s.put(v));});},
   delMany(store,ids){return this.tx(store,'readwrite',s=>{ids.forEach(i=>s.delete(i));});},
+  batch(rows,meta){return new Promise((res,rej)=>{const t=this.db.transaction(['sessions','meta'],'readwrite');
+    t.oncomplete=res;t.onabort=()=>rej(t.error||new Error('Device transaction aborted'));
+    try{for(const s of rows)t.objectStore('sessions').put(s);if(meta)t.objectStore('meta').put({k:'meta',v:meta});}catch(e){t.abort();rej(e);}
+  });},
   /* used when the browser refuses storage: the app still works, nothing persists */
   useMemory(){const m={sessions:new Map(),meta:new Map()},key={sessions:'id',meta:'k'};
-    this.all=async st=>[...m[st].values()];this.put=async(st,v)=>{m[st].set(v[key[st]],v);};
-    this.putMany=async(st,vs)=>{vs.forEach(v=>m[st].set(v[key[st]],v));};this.delMany=async(st,ids)=>{ids.forEach(i=>m[st].delete(i));};}
+    this.all=async st=>[...m[st].values()].map(copy);this.put=async(st,v)=>{m[st].set(v[key[st]],copy(v));};
+    this.putMany=async(st,vs)=>{vs.forEach(v=>m[st].set(v[key[st]],copy(v)));};this.delMany=async(st,ids)=>{ids.forEach(i=>m[st].delete(i));};
+    this.batch=async(rows,meta)=>{await this.putMany('sessions',rows);if(meta)await this.put('meta',{k:'meta',v:meta});};}
 };
 
 /* ---------------- State ---------------- */
-const S={sessions:new Map(),meta:{},tab:'train',progEx:'squat',progMetric:'e1rm',histRange:'30',calMonth:null,progRange:'3m',openId:null,chart:null};
-async function saveMeta(){await DB.put('meta',{k:'meta',v:S.meta});}
-async function saveSession(s,opts){
-  s.updatedAt=new Date().toISOString();s.dirty=!s.demo;
-  S.sessions.set(s.id,s);await DB.put('sessions',s);
-  if(!(opts&&opts.noSync))Sync.schedule();
+const S={sessions:new Map(),meta:{},tab:'train',progEx:'squat',progMetric:'e1rm',histRange:'30',calMonth:null,progRange:'3m',openId:null,chart:null,focusEx:null,persistFailures:new Set(),updateAvailable:false,applyUpdate:false};
+const copy=value=>JSON.parse(JSON.stringify(value));
+const META_SAVE=Symbol('meta');
+function refreshSaveStatus(){
+  S.persistErr=S.memOnly?'Browser storage is unavailable. Changes stay in memory; export for recovery.':
+    S.persistFailures.size?'Device save failed. Export your workouts to recover recent changes.':'';
+  if(typeof renderSaveStatus==='function')renderSaveStatus();
 }
-const live=()=>[...S.sessions.values()].filter(s=>!s.deleted);
-const doneSessions=()=>live().filter(s=>s.status==='done').sort((a,b)=>(a.date+a.startedAt).localeCompare(b.date+b.startedAt));
+async function persist(keys,write){
+  try{await write();keys.forEach(k=>S.persistFailures.delete(k));}
+  catch(e){keys.forEach(k=>S.persistFailures.add(k));throw new Error('Device save failed. Export your workouts or retry saving.');}
+  finally{refreshSaveStatus();}
+}
+async function saveMeta(){return persist([META_SAVE],()=>DB.put('meta',{k:'meta',v:S.meta}));}
+async function retryLocal(){
+  const ids=[...S.persistFailures].filter(k=>typeof k==='string');
+  const withMeta=S.persistFailures.has(META_SAVE);
+  await persist([...ids,...(withMeta?[META_SAVE]:[])],()=>DB.batch(ids.map(id=>S.sessions.get(id)).filter(Boolean),withMeta?S.meta:null));
+  Sync.schedule();
+}
+async function saveSession(s,opts){
+  s.updatedAt=new Date().toISOString();s.dirty=!s.demo;s.localVersion=(s.localVersion||0)+1;
+  if(!s.demo&&S.meta.binding&&!s.owner)s.owner=S.meta.binding;
+  S.sessions.set(s.id,s);
+  try{await persist([s.id],()=>DB.put('sessions',s));}
+  finally{if(!(opts&&opts.noSync))Sync.schedule();}
+}
+const recovery=s=>s.recoveryCopy||s.conflictCopy;
+const live=()=>[...S.sessions.values()].filter(s=>!s.deleted&&!recovery(s)&&!s.parkedDraft);
+const doneSessions=()=>live().filter(s=>s.status==='done'&&!s.demo).sort((x,y)=>(x.date+x.startedAt).localeCompare(y.date+y.startedAt));
+const historySessions=()=>{const real=doneSessions();return real.length?real:live().filter(s=>s.status==='done'&&s.demo).sort((x,y)=>(x.date+x.startedAt).localeCompare(y.date+y.startedAt));};
 const activeSession=()=>live().find(s=>s.status==='active');
 
 /* ---------------- Training logic ---------------- */
@@ -657,32 +691,41 @@ function lastFor(key,group){
     if(!e)continue;if(!group||(PROGRAMS[d[i].type]||{}).group===group)return {e,s:d[i]};if(!any)any={e,s:d[i]};}
   return any;
 }
+const MAX_SETS=20;
+const actualWeight=(e,x)=>Number(x.weight??e.weight)||0;
+const loggedSets=e=>e.sets.filter(x=>x.reps!=null);
+const loggedLine=e=>loggedSets(e).map(x=>fmtW(actualWeight(e,x))+' × '+x.reps).join(' / ');
 function suggest(def,group){
   const L=lastFor(def.key,group);if(!L)return {w:'',why:''};
-  const e=L.e;const hitAll=e.sets.length>0&&e.sets.every(s=>s.reps!=null&&s.reps>=def.hi);
-  if(hitAll&&e.weight>0)return {w:e.weight+def.inc,why:'+'+fmtW(def.inc)+' lb'};
-  return {w:e.weight,why:''};
+  const e=L.e,sets=e.sets.slice(0,def.sets),first=loggedSets(e)[0];
+  const w=first?actualWeight(e,first):0;
+  if(w>0&&w+def.inc<=2000&&sets.length===def.sets&&sets.every(x=>x.reps!=null&&x.reps>=def.hi&&actualWeight(e,x)===w))return {w:w+def.inc,why:'+'+fmtW(def.inc)+' lb'};
+  return {w,why:''};
 }
 function lastDone(type){const d=doneSessions().filter(s=>s.type===type);return d.length?d[d.length-1]:null;}
 function nextAB(){const d=doneSessions().filter(s=>s.type==='A'||s.type==='B');return d.length&&d[d.length-1].type==='A'?'B':'A';}
 function nextQ(){const d=doneSessions().filter(s=>QORDER.includes(s.type));if(!d.length)return 'Q1';return QORDER[(QORDER.indexOf(d[d.length-1].type)+1)%3];}
 function exMetrics(e){
   let reps=0,vol=0,goal=0,got=0,e1=0,top=0;
-  e.sets.forEach(s=>{const r=s.reps||0;goal+=e.hi;got+=Math.min(r,e.hi);reps+=r;vol+=r*e.weight;
-    if(r>0){top=Math.max(top,e.weight);e1=Math.max(e1,e.weight*(1+r/30));}});
+  for(const x of e.sets){
+    const r=x.reps||0,w=actualWeight(e,x);
+    goal+=e.hi;got+=Math.min(r,e.hi);reps+=r;vol+=r*w;
+    if(r>0){top=Math.max(top,w);e1=Math.max(e1,w*(1+r/30));}
+  }
   return {reps,vol,pct:goal?got/goal:0,e1rm:e1,top};
 }
 function sessMetrics(s){
   let goal=0,got=0,vol=0,done=0,total=0;
-  s.exercises.forEach(e=>e.sets.forEach(x=>{goal+=e.hi;got+=Math.min(x.reps||0,e.hi);vol+=(x.reps||0)*e.weight;total++;if(x.reps!=null)done++;}));
+  s.exercises.forEach(e=>e.sets.forEach(x=>{goal+=e.hi;got+=Math.min(x.reps||0,e.hi);vol+=(x.reps||0)*actualWeight(e,x);total++;if(x.reps!=null)done++;}));
   const mins=s.finishedAt&&s.startedAt?Math.max(1,Math.round((ts(s.finishedAt)-ts(s.startedAt))/60000)):null;
   return {pct:goal?got/goal:0,vol,mins,done,total,got,goal};
 }
 async function startSession(type){
-  const p=PROGRAMS[type];
-  const s={id:uid(),type,date:today(),status:'active',startedAt:new Date().toISOString(),finishedAt:null,notes:'',deleted:false,
-    exercises:p.ex.map(d=>{const g=suggest(d,p.group);return {key:d.key,name:d.name,lo:d.lo,hi:d.hi,inc:d.inc,note:d.note,why:g.why,
-      weight:g.w===''?0:g.w,sets:Array.from({length:d.sets},()=>({target:d.hi,reps:null}))};})};
+  const p=PROGRAMS[type];if(!p||activeSession())return;
+  const s={id:uid(),type,date:today(),status:'active',startedAt:new Date().toISOString(),finishedAt:null,notes:'',deleted:false,orderMode:orderFor(type),
+    exercises:p.ex.map(d=>{const g=suggest(d,p.group),weight=g.w===''?0:g.w;
+      return {key:d.key,name:d.name,lo:d.lo,hi:d.hi,inc:d.inc,note:d.note,why:g.why,weight,
+        sets:Array.from({length:d.sets},()=>({target:d.hi,reps:null,weight}))};})};
   await saveSession(s);render();window.scrollTo(0,0);
 }
 
@@ -699,7 +742,7 @@ function makeDemo(){
     if(dow===1||dow===4){type=ab;}else if(dow===2||dow===6){type=QORDER[qi%3];}
     if(!type||R()<0.13)continue;
     if(type==='A'||type==='B')ab=ab==='A'?'B':'A';else qi++;
-    const p=PROGRAMS[type],quick=p.mode==='superset';
+    const p=PROGRAMS[type],quick=p.mode==='quick';
     const exs=p.ex.map(d=>{let sets;
       if(!quick){const w=W[d.key];sets=Array.from({length:d.sets},(_,si)=>{const miss=R()<0.08+si*0.09;return {target:d.hi,reps:miss?d.hi-1-Math.floor(R()*2):d.hi};});
         if(sets.every(s=>s.reps>=d.hi)&&(d.inc>=5||R()<0.3))W[d.key]+=d.inc;return {key:d.key,name:d.name,lo:d.lo,hi:d.hi,inc:d.inc,note:d.note,weight:w,sets};}
@@ -723,24 +766,59 @@ const Wake={lock:null,async sync(){
     else if(!want&&this.lock){await this.lock.release();this.lock=null;}}catch(e){this.lock=null;}}};
 
 /* ---------------- Rest timer ---------------- */
-const Rest={end:0,total:1,lbl:'',notified:false,
-  start(sec,lbl){this.end=Date.now()+sec*1000;this.total=sec*1000;this.lbl=lbl;this.notified=false;$('#rest').hidden=false;document.body.classList.add('resting');tick();},
-  stop(){this.end=0;$('#rest').hidden=true;document.body.classList.remove('resting');}};
-$('#restSkip').onclick=()=>Rest.stop();
-$('#restPlus').onclick=()=>{Rest.end=Math.max(Rest.end,Date.now())+15000;Rest.total=Math.max(Rest.total,Rest.end-Date.now());Rest.notified=false;tick();};
-$('#restMinus').onclick=()=>{Rest.end=Math.max(Date.now(),Rest.end-15000);tick();};
+const defaultOrder=type=>type==='Q2'||type==='Q3'?'alternate':'straight';
+function orderFor(type){
+  const pref=S.meta.quickOrder?.[type];
+  return PROGRAMS[type].mode==='quick'&&(pref==='alternate'||pref==='straight')?pref:defaultOrder(type);
+}
+function restKey(s,e){return e.key==='lateral_raise'?'lateral_raise':PROGRAMS[s.type].mode==='quick'?s.type+':'+(s.orderMode||orderFor(s.type)):s.type;}
+function restDuration(s,e){
+  const pref=S.meta.rests?.[restKey(s,e)];
+  if(Number.isFinite(pref)&&pref>=15&&pref<=600)return pref;
+  return e.key==='lateral_raise'||(s.orderMode||orderFor(s.type))==='alternate'?60:PROGRAMS[s.type].mode==='quick'?90:120;
+}
+const Rest={end:0,total:1,notified:false,context:null,
+  snapshot(){return this.end?{end:this.end,total:this.total,context:this.context}:null;},
+  async persist(){S.meta.restTimer=this.snapshot();await saveMeta();},
+  async start(sec,s,e,token){
+    this.end=Date.now()+sec*1000;this.total=sec*1000;this.context={id:s.id,key:restKey(s,e),token};this.notified=false;
+    tick();await this.persist();
+  },
+  restore(v){
+    const s=activeSession(),ctx=v?.context;
+    const matches=s&&(ctx?.id===s.id||ctx===s.type)&&(!ctx?.token||s.exercises.some(e=>e.sets.some(set=>set.logToken===ctx.token)));
+    this.end=matches&&Number.isFinite(v.end)&&v.end>0?v.end:0;
+    this.total=this.end&&v.total>0?v.total:1;
+    this.context=this.end?(ctx?.id?ctx:{id:s.id}):null;
+    this.notified=!!this.end&&this.end<=Date.now();tick();
+  },
+  async stop(){this.end=0;this.context=null;tick();await this.persist();},
+  async adjust(delta){
+    if(!this.end)return;
+    const sec=Math.max(15,Math.min(600,this.total/1000+delta));
+    this.end+=(sec-this.total/1000)*1000;this.total=sec*1000;
+    if(this.end>Date.now())this.notified=false;
+    if(this.context?.key)S.meta.rests={...S.meta.rests,[this.context.key]:sec};
+    tick();await this.persist();
+  }};
+function timerAction(action){return async()=>{try{await action();}catch(e){render();toast(e.message,'err');}};}
+$('#restSkip').onclick=timerAction(()=>Rest.stop());
+$('#restPlus').onclick=timerAction(()=>Rest.adjust(15));
+$('#restMinus').onclick=timerAction(()=>Rest.adjust(-15));
 function tick(){
-  if(Rest.end){const left=Math.round((Rest.end-Date.now())/1000);const r=$('#rest');
+  const s=activeSession(),r=$('#rest'),show=!!(Rest.end&&s&&Rest.context?.id===s.id&&S.tab==='train');
+  r.hidden=!show;document.body.classList.toggle('resting',show);
+  if(show){
+    const left=Math.ceil((Rest.end-Date.now())/1000);
     r.classList.toggle('done',left<=0);
-    $('#restLbl').textContent=left<=0?'Rest over · next set':Rest.lbl;
+    $('#restLbl').textContent=(left<=0?'Rest over · ':'')+nextUp(s,focusIndex(s));
     const a=Math.abs(left);$('#restTm').textContent=(left<0?'+':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0');
-    if(left<=0&&!Rest.notified){Rest.notified=true;try{navigator.vibrate&&navigator.vibrate(300);}catch(e){}}
-    const frac=Math.max(0,Math.min(1,(Rest.end-Date.now())/Rest.total));$('#restBar').style.width=frac*100+'%';
-    $('#rrArc').setAttribute('stroke-dasharray',(119.4*frac).toFixed(1)+' 119.4');
-    if(left<-120)Rest.stop();}
-  const el=$('#elapsed');const s=activeSession();
-  if(el&&s)el.textContent=fmtClock(Date.now()-ts(s.startedAt));
-  if(s&&S.tab==='train'){const mm=sessMetrics(s);$('#title').textContent=PROGRAMS[s.type].label+' · '+fmtClock(Date.now()-ts(s.startedAt))+' · '+mm.done+'/'+mm.total;}
+    if(left<=0&&!Rest.notified&&document.visibilityState==='visible'){Rest.notified=true;try{navigator.vibrate?.(300);}catch(e){}}
+    const frac=Math.max(0,Math.min(1,(Rest.end-Date.now())/Rest.total));
+    $('#restBar').style.width=frac*100+'%';$('#rrArc').setAttribute('stroke-dasharray',(119.4*frac).toFixed(1)+' 119.4');
+  }
+  const el=$('#elapsed');if(el&&s)el.textContent=fmtClock(Date.now()-ts(s.startedAt));
+  if(s&&S.tab==='train'){const m=sessMetrics(s);$('#title').textContent=PROGRAMS[s.type].label+' · '+fmtClock(Date.now()-ts(s.startedAt))+' · '+m.done+'/'+m.total;}
 }
 setInterval(tick,1000);
 
@@ -758,6 +836,10 @@ function countUp(root){
 const TITLES={history:'History',progress:'Progress',data:'Settings'};
 function onScroll(){$('#hdr').classList.toggle('scrolled',window.scrollY>36);}
 window.addEventListener('scroll',onScroll,{passive:true});
+function renderSaveStatus(){
+  const banner=$('#saveBanner');banner.hidden=!S.persistErr;
+  if($('#saveMessage').textContent!==(S.persistErr||''))$('#saveMessage').textContent=S.persistErr||'';
+}
 function render(){
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===S.tab));
   const v=$('#view');const a=activeSession();const changed=S._tab!==S.tab;S._tab=S.tab;S.chart=null;
@@ -767,7 +849,8 @@ function render(){
   else if(S.tab==='progress')v.innerHTML=viewProgress();
   else v.innerHTML=viewData();
   if(S.tab!=='train')$('#title').textContent=TITLES[S.tab];
-  if(S.tab!=='train'||!a)Rest.stop();
+  if(S.updateAvailable)v.insertAdjacentHTML('afterbegin',`<div class="card small note">An app update is ready. ${a?'It will wait until you finish your workout.':'<button class="btn sm" data-act="applyupdate">Update now</button>'}</div>`);
+  renderSaveStatus();
   $('#hdr').classList.toggle('wo',!!a&&S.tab==='train');document.body.classList.toggle('wo',!!a&&S.tab==='train');
   {const hp=$('#hprog');if(a&&S.tab==='train'){const mm=sessMetrics(a);hp.style.width=(mm.total?mm.done/mm.total*100:0)+'%';hp.hidden=false;}else hp.hidden=true;}
   if(changed){v.classList.remove('fade');void v.offsetWidth;v.classList.add('fade');countUp(v);}
@@ -799,9 +882,9 @@ function closeSheet(){$('#sheet').hidden=true;document.body.classList.remove('lo
 /* personal records: a lift's best estimated 1-rep max beats every earlier session */
 function sessionPRs(s){
   const key=x=>x.date+x.startedAt,before=doneSessions().filter(x=>key(x)<key(s)),out=[];
-  s.exercises.forEach(e=>{const m=exMetrics(e);if(!m.reps)return;let prev=0;
+  s.exercises.forEach(e=>{const m=exMetrics(e);if(s.demo||!m.reps)return;let prev=0;
     before.forEach(b=>b.exercises.forEach(x=>{if(x.key===e.key)prev=Math.max(prev,exMetrics(x).e1rm);}));
-    if(prev>0&&m.e1rm>prev+.05)out.push({name:e.name,v:m.e1rm,prev,weight:e.weight});});
+    if(prev>0&&m.e1rm>prev+.05)out.push({name:e.name,v:m.e1rm,prev,weight:m.top});});
   return out;
 }
 
@@ -814,9 +897,15 @@ const MAP={squat:{quads:1,post:.5},bench:{chest:1,shoulders:.5},row:{back:1},lat
 const WEEKLY_TARGET=6;   /* hard sets per muscle per week */
 const RECOVER_H=44;      /* a muscle trained directly less than ~2 days ago is still recovering */
 const FULL_REST_H=96;    /* 4+ days off counts as fully rested */
+function sessionTime(s){
+  const t=new Date(s.finishedAt||s.date+'T12:00:00');
+  if(!Number.isFinite(+t))return ts(s.date+'T12:00:00');
+  if(t.toLocaleDateString('en-CA')!==s.date){const [y,m,d]=s.date.split('-').map(Number);t.setFullYear(y,m-1,d);}
+  return +t;
+}
 function muscleState(){
   const now=Date.now(),st={};Object.keys(MUSCLES).forEach(k=>st[k]={sets7:0,last:0});
-  doneSessions().forEach(s=>{const t=ts(s.finishedAt)||ts(s.date+'T12:00:00');
+  doneSessions().forEach(s=>{const t=sessionTime(s);if(t>now)return;
     s.exercises.forEach(e=>{const m=MAP[e.key];if(!m)return;const n=e.sets.filter(x=>(x.reps||0)>0).length;if(!n)return;
       for(const [k,w] of Object.entries(m)){if(now-t<7*864e5)st[k].sets7+=n*w;if(w>=.5)st[k].last=Math.max(st[k].last,t);}});});
   for(const k in st){const x=st[k];x.hrs=x.last?(now-x.last)/36e5:Infinity;
@@ -833,7 +922,7 @@ function rankWorkouts(){
     let sc=den?num/den:0;
     if(t===na||t===nq)sc+=.05;                      /* keep the A/B and quick rotations moving */
     if(PROGRAMS[t].group==='AB')sc+=.01;            /* tie goes to the full workout */
-    const L=lastDone(t);if(L&&now-(ts(L.finishedAt)||ts(L.date+'T12:00:00'))<48*36e5)sc-=.15;
+    const L=lastDone(t);if(L&&now-sessionTime(L)<48*36e5)sc-=.15;
     return {t,sc,w,ms};}).sort((a,b)=>b.sc-a.sc);
 }
 function recReason(r){
@@ -884,7 +973,7 @@ function previewSheet(type){
   const p=PROGRAMS[type];
   const rows=p.ex.map(d=>{const g=suggest(d,p.group),L=lastFor(d.key,p.group);
     return `<div class="pv-r"><div class="pv-n"><b>${esc(d.name)}</b><span>${d.sets} × ${d.lo===d.hi?d.hi:d.lo+'–'+d.hi}${d.note?' · '+esc(d.note):''}</span></div>
-      <div class="pv-w"><b class="num">${g.w===''?'—':fmtW(g.w)+' lb'}</b><span>${L?'last '+fmtW(L.e.weight)+' · '+repsStr(L.e):'first time'}</span>${g.why?`<em class="why">${esc(g.why)}</em>`:''}</div></div>`;}).join('');
+      <div class="pv-w"><b class="num">${g.w===''?'—':fmtW(g.w)+' lb'}</b><span>${L?'Last '+loggedLine(L.e):'first time'}</span>${g.why?`<em class="why">${esc(g.why)}</em>`:''}</div></div>`;}).join('');
   openSheet(`<div class="sh-h" style="--t:var(${p.color})"><span class="tag lg">${p.tag}</span><div><div class="sh-t">${esc(p.label)}</div><div class="sh-s">${p.est} · ${setsCount(type)} sets · ${lastLine(type)}</div></div></div>
     <p class="sh-d">${esc(p.desc)}</p><div class="pv">${rows}</div>
     <button class="btn big primary" data-act="start" data-type="${type}">Start workout</button>
@@ -902,17 +991,16 @@ function plates(key,w){
     <span class="pl-t">${use.length?'<b>'+use.join(' + ')+'</b> per side':'Empty bar'}${left>0?` · ${left} lb short`:''}</span></div>`;
 }
 /* ---------------- Active workout ---------------- */
-function currentIndex(s){
-  const p=PROGRAMS[s.type];const left=s.exercises.map(e=>e.sets.filter(x=>x.reps==null).length);
-  if(left.every(n=>n===0))return -1;
-  if(p.mode==='superset'){const done=s.exercises.map(e=>e.sets.filter(x=>x.reps!=null).length);let best=-1;
-    s.exercises.forEach((e,i)=>{if(left[i]&&(best<0||done[i]<done[best]))best=i;});return best;}
-  return left.findIndex(n=>n>0);
+function resolveNextLift(s,from=-1,{after=false}={}){
+  const n=s.exercises.length,open=i=>s.exercises[i]?.sets.some(x=>x.reps==null);
+  const alternate=(s.orderMode||orderFor(s.type))==='alternate';
+  if(open(from)&&(!after||!alternate))return from;
+  if(from>=0&&alternate)for(let offset=1;offset<=n;offset++){
+    const i=(from+offset)%n;if(open(i))return i;
+  }
+  return s.exercises.findIndex((_,i)=>open(i));
 }
-function focusIndex(s){
-  if(S.focusEx!=null){const e=s.exercises[S.focusEx];if(e&&e.sets.some(x=>x.reps==null))return S.focusEx;S.focusEx=null;}
-  return currentIndex(s);
-}
+function focusIndex(s){return s.exercises[s.focusEx]?s.focusEx:resolveNextLift(s);}
 /* what the rep stepper starts at: the target, or for rep-range lifts the last set you did */
 function draftReps(s,ei,si){
   const k=s.id+':'+ei+':'+si;if(S.draft&&S.draft.k===k)return S.draft.reps;
@@ -922,80 +1010,117 @@ function draftReps(s,ei,si){
 }
 /* the next two set slots after the current one */
 function upcoming(s,ei){
-  const p=PROGRAMS[s.type],out=[];
-  if(p.mode==='superset'){const n=s.exercises.length;for(let k=1;k<=n&&out.length<2;k++){const j=(ei+k)%n,e=s.exercises[j];
-      if(j!==ei&&e.sets.some(x=>x.reps==null))out.push(e);}}
-  else s.exercises.forEach((e,j)=>{if(j>ei&&out.length<2&&e.sets.some(x=>x.reps==null))out.push(e);});
-  return out.map(e=>{const left=e.sets.filter(x=>x.reps==null).length;return {name:e.name,info:`${e.weight?fmtW(e.weight)+' · ':''}${left}×${e.lo===e.hi?e.hi:e.lo+'–'+e.hi}`};});
+  const copy={...s,exercises:s.exercises.map(e=>({...e,sets:e.sets.slice()}))},out=[];
+  const consume=i=>{
+    const e=copy.exercises[i],slot=e?.sets.findIndex(x=>x.reps==null);
+    if(slot==null||slot<0)return null;
+    e.sets[slot]={...e.sets[slot],reps:0};
+    return {name:e.name,info:`Set ${slot+1}${e.weight?' · '+fmtW(e.weight)+' lb':''}`};
+  };
+  let next=resolveNextLift(copy,ei,{after:!!consume(ei)});
+  while(next>=0&&out.length<2){
+    out.push(consume(next));next=resolveNextLift(copy,next,{after:true});
+  }
+  return out;
 }
 function viewWorkout(s){
   const p=PROGRAMS[s.type],m=sessMetrics(s),ei=focusIndex(s);
-  const all=s.exercises.flatMap(e=>e.sets);const firstOpen=all.findIndex(x=>x.reps==null);
-  const ticks=all.map((x,i)=>`<i class="${x.reps!=null?'d':i===firstOpen?'c':''}"></i>`).join('');
+  const selected=s.exercises[ei]?.sets.find(x=>x.reps==null);
+  const ticks=s.exercises.flatMap(e=>e.sets).map(x=>`<i class="${x.reps!=null?'d':x===selected?'c':''}"></i>`).join('');
   let h=`<div class="wtop"><span class="eyb">● ${esc(p.label)}</span><span class="st2"><span id="elapsed">0:00</span> · ${fmtBig(m.vol)} LB</span></div>
     <div class="ticks" role="img" aria-label="${m.done} of ${m.total} sets done">${ticks}</div>`;
+  const mode=s.orderMode||orderFor(s.type);
+  const rest=e=>fmtClock(restDuration(s,e)*1000);
+  h+=`<div class="liftswitch" role="group" aria-label="Choose lift">${s.exercises.map((e,i)=>`<button class="btn sm ${i===ei?'primary':''}" aria-pressed="${i===ei}" data-act="focusex" data-ei="${i}">${esc(e.name)} ${loggedSets(e).length}/${e.sets.length}</button>`).join('')}</div>
+    <div class="liftswitch">${p.mode==='quick'?`<button class="btn sm" data-act="quickorder">Order · ${mode==='alternate'?'Alternate':'One at a time'}</button>`:''}
+    ${ei>=0?`<span class="small muted">Rest ${rest(s.exercises[ei])}</span><button class="btn sm" data-act="restpref" data-delta="-15" aria-label="Decrease default rest by 15 seconds">−15s</button><button class="btn sm" data-act="restpref" data-delta="15" aria-label="Increase default rest by 15 seconds">+15s</button>`:''}
+    ${canUndo(s)?'<button class="btn sm" data-act="undo">Undo last set</button>':''}</div>`;
   if(ei<0){
     h+=`<section class="lit wo"><div><div class="ex-nm">All sets logged</div><div class="ex-sb">${m.done} sets · ${fmtBig(m.vol)} lb · ${Math.round(m.pct*100)}% of target reps</div></div>
-      <div class="alldone">${s.exercises.map(e=>`<div class="ln"><span>${esc(e.name)}</span><span>${e.weight?fmtW(e.weight)+' lb · ':''}${repsStr(e)}</span></div>`).join('')}</div></section>
+      <div class="alldone">${s.exercises.map(e=>`<div class="ln"><span>${esc(e.name)}</span><span>${loggedLine(e)||'—'}</span></div>`).join('')}</div></section>
       <div class="rail"><div class="rhint">Finish saves it to History</div><div class="rbtns"><button class="menu" data-act="wmenu" aria-label="Workout menu">☰</button>
       <button class="logb" data-act="finish">FINISH<span aria-hidden="true">✓</span></button></div></div>`;
     return h;
   }
-  const e=s.exercises[ei],si=e.sets.findIndex(x=>x.reps==null),reps=draftReps(s,ei,si);
-  const L=lastFor(e.key,p.group);const diff=L&&e.weight?Math.round((e.weight-L.e.weight)*10)/10:null;
+  const e=s.exercises[ei],si=e.sets.findIndex(x=>x.reps==null),reps=si>=0?draftReps(s,ei,si):e.hi;
+  const L=lastFor(e.key,p.group),previous=L&&loggedSets(L.e)[0];
+  const diff=previous?Math.round((e.weight-actualWeight(L.e,previous))*10)/10:null;
   const vs=!L?'<div class="vs">First time</div>':diff>0?`<div class="vs up">▲ ${fmtW(diff)} vs last</div>`:diff<0?`<div class="vs">▼ ${fmtW(-diff)} vs last</div>`:'<div class="vs">Same as last</div>';
   const range=e.lo===e.hi;
-  const chips=e.sets.map((x,i)=>x.reps==null?'':`<button class="dc${range&&x.reps<e.hi?' sh':''}" data-act="editchip" data-chip="${ei}:${i}" aria-label="Set ${i+1}: ${x.reps} reps. Tap to change">${x.reps}${range?(x.reps>=e.hi?'✓':'↓'):''}</button>`).join('');
-  const unit=p.mode==='superset'?'Round':'Set';
+  const chips=e.sets.map((x,i)=>x.reps==null?'':`<button class="dc${range&&x.reps<e.hi?' sh':''}" data-act="editchip" data-chip="${ei}:${i}" aria-label="Set ${i+1}: ${x.reps} reps at ${fmtW(actualWeight(e,x))} pounds. Tap to edit">${x.reps}${range?(x.reps>=e.hi?'✓':'↓'):''}</button>`).join('');
+  const unit=mode==='alternate'?'Round':'Set';
   const next=upcoming(s,ei);
   h+=`<section class="lit wo">
     <div class="ex-hd"><div style="min-width:0"><div class="ex-nm">${esc(e.name)}</div>
-      <div class="ex-sb">${unit} ${si+1} of ${e.sets.length}${L?` · last ${fmtW(L.e.weight)} × ${L.e.sets.map(x=>x.reps??'–').join(' ')}`:''}</div></div>
+      <div class="ex-sb">${si>=0?unit+' '+(si+1)+' of '+e.sets.length:'All sets logged'}${L?` · Last ${loggedLine(L.e)}`:''}</div></div>
       <div class="chips2">${chips}</div></div>
-    <div class="wr">
-      <div><div class="eyb">Weight · lb</div><input class="bigv${String(e.weight||'').length>3?' sm':''}" type="number" inputmode="decimal" step="any" id="w${ei}" data-w="${ei}" value="${e.weight||''}" placeholder="0" aria-label="${esc(e.name)} weight in pounds">${vs}</div>
+    ${si>=0?`<div class="wr">
+      <div><div class="eyb">Weight · lb</div><input class="bigv${String(e.weight||'').length>3?' sm':''}" type="number" inputmode="decimal" step="any" min="0" max="2000" id="w${ei}" data-w="${ei}" value="${e.weight||''}" placeholder="0" aria-label="${esc(e.name)} weight in pounds">${vs}</div>
       <div><div class="eyb">Reps</div><div class="bigv" aria-live="polite">${reps}</div><div class="vs">Target ${range?e.hi:e.lo+'–'+e.hi}</div></div>
       <div class="stp"><button data-act="wdec" data-ei="${ei}" aria-label="Less weight, ${fmtW(e.inc)} pounds"><b>−</b><small>${fmtW(e.inc)}</small></button><button data-act="winc" data-ei="${ei}" aria-label="More weight, ${fmtW(e.inc)} pounds"><b>+</b><small>${fmtW(e.inc)}</small></button></div>
       <div class="stp"><button data-act="rdec" data-ei="${ei}" data-si="${si}" aria-label="Fewer reps"><b>−</b><small>1</small></button><button data-act="rinc" data-ei="${ei}" data-si="${si}" aria-label="More reps"><b>+</b><small>1</small></button></div>
     </div>
-    ${plates(e.key,e.weight)}
+    ${plates(e.key,e.weight)}`: ''}
   </section>
   ${next.map((x,i)=>`<div class="nx${i?' t':''}"><span class="eyb">${i?'Then':'Next'}</span><b>${esc(x.name)}</b><span>${x.info}</span></div>`).join('')}
-  <div class="rail"><div class="rhint">Logging starts a ${fmtClock((e.key==='lateral_raise'?60:p.rest)*1000)} rest</div><div class="rbtns">
-    <button class="menu" data-act="wmenu" aria-label="Workout menu: lifts, note, finish">☰</button>
-    <button class="logb" data-act="logset" data-ei="${ei}" data-si="${si}">LOG SET<span aria-hidden="true">✓</span></button></div></div>`;
+  <div class="rail"><div class="rhint">${si>=0?`Logging starts a ${rest(e)} rest`:'Tap a logged set to edit it'}</div>
+    <div class="rbtns${si<0&&m.done===m.total&&e.sets.length<MAX_SETS?' complete':''}">
+    <button class="menu" data-act="wmenu" aria-label="Workout menu">☰</button>
+    ${si>=0?`<button class="logb" data-act="logset" data-id="${esc(s.id)}" data-ei="${ei}" data-si="${si}">LOG SET</button>`:
+      `${e.sets.length<MAX_SETS?`<button class="logb" data-act="addset" data-ei="${ei}">ADD SET</button>`:''}${m.done===m.total?'<button class="logb" data-act="finish">FINISH</button>':''}`}</div></div>`;
   return h;
 }
 function workoutMenu(s){
   const p=PROGRAMS[s.type],m=sessMetrics(s),cur=focusIndex(s);
   openSheet(`<div class="sh-t">${esc(p.label)}</div><div class="sh-s">${m.done} of ${m.total} sets · ${fmtBig(m.vol)} lb lifted</div>
     <div style="margin:14px 0 6px">${s.exercises.map((e,i)=>{const open=e.sets.some(x=>x.reps==null);
-      return `<button class="mrow${i===cur?' on':''}${open?'':' dn'}" data-act="focusex" data-ei="${i}"><b>${esc(e.name)}</b><span>${e.weight?fmtW(e.weight)+' · ':''}${e.sets.map(x=>x.reps??'–').join(' ')}</span></button>`;}).join('')}</div>
-    ${cur>=0?`<button class="btn ghost" data-act="addset" data-ei="${cur}" style="width:100%;margin:8px 0 14px">Add a set to ${esc(s.exercises[cur].name)}</button>`:''}
-    <label class="lb" for="notes">Note</label><textarea class="field" id="notes" data-notes placeholder="How did it feel?">${esc(s.notes)}</textarea>
+      return `<button class="mrow${i===cur?' on':''}${open?'':' dn'}" data-act="focusex" data-ei="${i}"><b>${esc(e.name)}</b><span>${loggedLine(e)||'—'}</span></button>`;}).join('')}</div>
+    ${cur>=0&&s.exercises[cur].sets.length<MAX_SETS?`<button class="btn ghost" data-act="addset" data-ei="${cur}" style="width:100%;margin:8px 0 14px">Add a set to ${esc(s.exercises[cur].name)}</button>`:''}
+    <label class="lb" for="notes">Note</label><textarea class="field" id="notes" data-notes maxlength="12000" placeholder="How did it feel?">${esc(s.notes)}</textarea>
     <button class="btn big primary" data-act="finish">Finish workout</button>
     <div class="wo-links"><button class="link" data-act="closesheet">Back to lifting</button><button class="link danger" data-act="discard">Discard</button></div>`);
 }
-/* paired workouts: a round is one set of each lift */
-function roundDots(s){
-  const n=Math.max(...s.exercises.map(e=>e.sets.length)),done=Math.min(...s.exercises.map(e=>e.sets.filter(x=>x.reps!=null).length));
-  const cur=Math.min(n,done+1);
-  return `<span class="rounds" aria-label="Round ${done>=n?n:cur} of ${n}">${done>=n?'All rounds done':'Round '+cur+' of '+n}${Array.from({length:n},(_,i)=>`<i class="${i<done?'d':i===done?'c':''}"></i>`).join('')}</span>`;
-}
-/* rest timer label: what's coming next */
 function nextUp(s,ei){
-  const p=PROGRAMS[s.type];let i=ei;
-  if(p.mode==='superset'){for(let k=1;k<=s.exercises.length;k++){const j=(ei+k)%s.exercises.length;if(s.exercises[j].sets.some(x=>x.reps==null)){i=j;break;}}}
-  else if(!s.exercises[ei].sets.some(x=>x.reps==null))i=s.exercises.findIndex(e=>e.sets.some(x=>x.reps==null));
-  if(i<0)return 'All sets logged · tap Finish';
-  const e=s.exercises[i],si=e.sets.findIndex(x=>x.reps==null);if(si<0)return 'Rest';
+  const i=resolveNextLift(s,ei);
+  if(i<0)return 'All sets logged · Finish workout';
+  const e=s.exercises[i],si=e.sets.findIndex(x=>x.reps==null);
   return `Next: ${e.name} · set ${si+1}${e.weight?' · '+fmtW(e.weight)+' lb':''}`;
+}
+function activeSlot(s,ei,si){
+  return si>=0&&focusIndex(s)===ei&&s.exercises[ei]?.sets.findIndex(x=>x.reps==null)===si;
+}
+let lastLog={id:null,at:0};
+async function logSet(s,ei,si){
+  if(!activeSlot(s,ei,si)||(lastLog.id===s.id&&Date.now()-lastLog.at<450))return;
+  const e=s.exercises[ei],set=e.sets[si],input=$('#w'+ei);
+  const weight=input?inputWeight(input):checkedWeight(e.weight);
+  const reps=draftReps(s,ei,si),token=uid();
+  lastLog={id:s.id,at:Date.now()};
+  s.undoLast={ei,si,prior:{...set},reps,weight,rest:Rest.snapshot(),token};
+  Object.assign(set,{weight,reps,logToken:token});
+  e.weight=weight;s.focusEx=resolveNextLift(s,ei,{after:true});S.draft=null;
+  render();await Promise.all([saveSession(s),Rest.start(restDuration(s,e),s,e,token)]);
+}
+function canUndo(s){
+  const u=s.undoLast,set=u&&s.exercises[u.ei]?.sets[u.si];
+  return !!u?.token&&!!u.prior&&set?.logToken===u.token&&set.reps===u.reps&&set.weight===u.weight;
+}
+async function undoSet(s){
+  if(!canUndo(s))return;
+  const u=s.undoLast,e=s.exercises[u.ei];
+  e.sets[u.si]=u.prior;e.weight=u.weight;s.focusEx=u.ei;
+  S.draft={k:s.id+':'+u.ei+':'+u.si,reps:u.reps};
+  delete s.undoLast;lastLog={id:null,at:0};
+  const resetRest=Rest.context?.token===u.token;
+  if(resetRest)Rest.restore(u.rest);
+  render();await Promise.all([saveSession(s),resetRest?Rest.persist():Promise.resolve()]);
+  toast('Set undone');
 }
 const EFFORT=[['easy','Easy'],['solid','Solid'],['hard','Hard'],['max','All-out']];
 function effortTag(s){const e=EFFORT.find(x=>x[0]===s.effort);return e?`<span class="etag e-${e[0]}">${e[1]}</span>`:'';}
 function summarySheet(s){
   const p=PROGRAMS[s.type],m=sessMetrics(s),prs=sessionPRs(s);
-  const lines=s.exercises.map(e=>`<div class="ln"><span>${esc(e.name)}</span><span class="num">${e.weight?fmtW(e.weight)+' lb · ':''}${repsStr(e)}</span></div>`).join('');
+  const lines=s.exercises.map(e=>`<div class="ln"><span>${esc(e.name)}</span><span class="num">${loggedLine(e)||'—'}</span></div>`).join('');
   openSheet(`<div class="sum" style="--t:var(${p.color})"><div class="sum-ic">${IC.check}</div><div class="sh-t">${esc(p.label)} complete</div>
     <div class="sh-s">${fmtDate(s.date,{weekday:'long',month:'long',day:'numeric'})}</div></div>
     <div class="sum-g"><div><b class="num">${m.mins??'–'}</b><span>${m.mins===1?'minute':'minutes'}</span></div><div><b class="num">${m.done}</b><span>sets</span></div>
@@ -1009,7 +1134,7 @@ function summarySheet(s){
 function calendar(){
   const base=S.calMonth?new Date(S.calMonth):new Date();base.setDate(1);base.setHours(12,0,0,0);
   const y=base.getFullYear(),mo=base.getMonth(),first=new Date(y,mo,1,12),days=new Date(y,mo+1,0).getDate();
-  const byDay={};doneSessions().forEach(s=>{(byDay[s.date]=byDay[s.date]||[]).push(s.type);});
+  const byDay={};historySessions().forEach(s=>{(byDay[s.date]=byDay[s.date]||[]).push(s.type);});
   const tday=today(),isCur=y===new Date().getFullYear()&&mo===new Date().getMonth();
   let n=0,cells='SMTWTFS'.split('').map(d=>`<span class="cw">${d}</span>`).join('');
   for(let i=0;i<first.getDay();i++)cells+='<span></span>';
@@ -1046,20 +1171,24 @@ function weekLabel(mon){
   const a=mon.toLocaleDateString(undefined,{month:'short',day:'numeric'});
   return a+' – '+(end.getMonth()===mon.getMonth()?end.getDate():end.toLocaleDateString(undefined,{month:'short',day:'numeric'}));
 }
+function inRecentDays(date,days){
+  const start=new Date();start.setDate(start.getDate()-(days-1));
+  return date>=start.toLocaleDateString('en-CA')&&date<=today();
+}
 function viewHistory(){
-  const d=doneSessions();
+  const d=historySessions();
   if(!d.length)return '<h2 class="lt">History</h2><div class="empty"><div class="empty-ic">'+IC.trophy+'</div>No workouts yet.<br>Finish one and it shows up here.</div>';
-  const all=S.histRange==='all',now=Date.now();
-  const set=all?d:d.filter(s=>now-ts(s.date+'T12:00:00')<30*864e5);
+  const all=S.histRange==='all';
+  const set=all?d:d.filter(s=>inRecentDays(s.date,30));
   const mins=set.reduce((a,s)=>a+(sessMetrics(s).mins||0),0),vol=set.reduce((a,s)=>a+sessMetrics(s).vol,0),st=streakInfo();
-  let h=`<h2 class="lt">History</h2>
+  let h=`<h2 class="lt">History</h2>${d[0].demo?'<p class="card small note">Sample history preview. Samples are excluded from recommendations, records, and progression.</p>':''}
     <div class="seg"><button data-act="range" data-r="30" class="${all?'':'on'}">Last 30 days</button><button data-act="range" data-r="all" class="${all?'on':''}">All time</button></div>
     <div class="tiles tiles4"><div class="tile"><div class="v num">${set.length}</div><div class="l">workouts</div></div>
     <div class="tile"><div class="v num">${(mins/60).toFixed(1)}<small>h</small></div><div class="l">training</div></div>
     <div class="tile"><div class="v num">${fmtBig(vol)}</div><div class="l">lb lifted</div></div>
     <div class="tile"><div class="v num">${st.n}<small>wk</small></div><div class="l">streak</div></div></div>
     <div class="card">${calendar()}</div>`;
-  const groups=[];d.slice().reverse().forEach(s=>{const k=monday(s.date).getTime();let g=groups[groups.length-1];if(!g||g.k!==k){g={k,items:[]};groups.push(g);}g.items.push(s);});
+  const groups=[];set.slice().reverse().forEach(s=>{const k=monday(s.date).getTime();let g=groups[groups.length-1];if(!g||g.k!==k){g={k,items:[]};groups.push(g);}g.items.push(s);});
   h+=groups.map((g,gi)=>`<h3 class="sec">${weekLabel(new Date(g.k))}${gi===0?`<button class="infob" data-act="ringinfo" aria-label="What the rings mean">${IC.info}</button>`:''}<span>${g.items.length} workout${g.items.length===1?'':'s'}</span></h3><div class="list">${g.items.map(histRow).join('')}</div>`).join('');
   return h;
 }
@@ -1078,21 +1207,56 @@ function monthVolume(){
     <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Pounds lifted per month, last 6 months">${bars}</svg>
     <div class="hint" style="margin-top:4px">${months[5].l} so far: ${fmtBig(cur)} lb in ${months[5].n} workouts${prev?` · ${Math.round(cur/prev*100)}% of ${months[4].l}`:''}</div></section>`;
 }
+function checkedReps(value){
+  if(String(value).trim()==='')return null;
+  const reps=Number(value);
+  if(!Number.isInteger(reps)||reps<0||reps>100)throw new Error('Reps must be a whole number from 0 to 100');
+  return reps;
+}
+function checkedWeight(value,{allowBlank=false}={}){
+  const w=Number(value);
+  if((String(value).trim()===''&&!allowBlank)||!Number.isFinite(w)||w<0||w>2000)throw new Error('Weight must be from 0 to 2,000 lb');
+  return w;
+}
+function inputWeight(input){
+  if(input.validity?.badInput)throw new Error('Enter a weight from 0 to 2,000 lb');
+  return checkedWeight(input.value,{allowBlank:true});
+}
+function editedHistory(orig,date,notes,fields){
+  const midday=new Date(date+'T12:00:00Z');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(+midday)||midday.toISOString().slice(0,10)!==date||date.startsWith('0000'))throw new Error('Enter a valid workout date');
+  const exercises=orig.exercises.map((e,ei)=>{
+    const rows=fields[ei];
+    if(!rows.length||rows.length>Math.max(e.sets.length,MAX_SETS))throw new Error('Keep at least one set per lift');
+    return {...e,sets:rows.map((row,si)=>({...e.sets[si],target:e.sets[si]?.target??e.hi,reps:checkedReps(row.reps),weight:checkedWeight(row.weight)}))};
+  });
+  return {...orig,date,notes:notes.slice(0,12000),exercises};
+}
+function historySetRow(ei,si,x){
+  return `<div class="row hset"><span>Set ${si+1}</span><input class="field" type="number" min="0" max="100" data-hrep="${ei}:${si}" value="${x.reps??''}" placeholder="reps" aria-label="Set ${si+1} reps"><input class="field" type="number" min="0" max="2000" step="any" data-hweight="${ei}:${si}" value="${x.weight??0}" aria-label="Set ${si+1} weight lb"></div>`;
+}
+function historyEditSheet(s){
+  const ex=s.exercises.map((e,ei)=>`<section class="card" data-heditgroup="${ei}"><b>${esc(e.name)}</b><div class="hsets">${e.sets.map((x,si)=>historySetRow(ei,si,{...x,weight:actualWeight(e,x)})).join('')}</div>
+    <div class="row"><button class="btn sm" data-act="hadd" data-ei="${ei}">Add set</button><button class="btn sm ghost" data-act="hremove" data-ei="${ei}" aria-label="Remove last set from ${esc(e.name)}">Remove last set</button></div></section>`).join('');
+  openSheet(`<div class="sh-t">Edit finished workout</div><label class="lb" for="hdate">Date</label><input class="field" id="hdate" type="date" value="${esc(s.date)}">
+    <label class="lb" for="hnotes">Notes</label><textarea class="field" id="hnotes" maxlength="12000">${esc(s.notes||'')}</textarea>${ex}
+    <div class="row"><button class="btn big primary" data-act="historysave" data-id="${esc(s.id)}">Save workout</button><button class="btn big ghost" data-act="closesheet">Cancel</button></div>`);
+}
 function histRow(s){
   const m=sessMetrics(s),p=PROGRAMS[s.type]||{label:s.type,tag:'?',color:'--accent'},open=S.openId===s.id,prs=sessionPRs(s);
-  const lines=s.exercises.map(e=>`<div class="ln"><span>${esc(e.name)}</span><span class="num">${e.weight?fmtW(e.weight)+' lb · ':''}${repsStr(e)}</span></div>`).join('');
-  return `<div class="hrow${open?' open':''}" id="h-${esc(s.id)}" style="--t:var(${p.color})"><button class="swdel" data-act="del" data-id="${esc(s.id)}" tabindex="-1">${IC.trash}Delete</button><button class="li sw" data-act="toggle" data-id="${esc(s.id)}" aria-expanded="${open}">
+  const lines=s.exercises.map(e=>`<div class="ln"><span>${esc(e.name)}</span><span class="num">${loggedLine(e)||'—'}</span></div>`).join('');
+  return `<div class="hrow${open?' open':''}" id="h-${esc(s.id)}" style="--t:var(${p.color})"><button class="swdel" ${s.demo?'hidden':''} data-act="del" data-id="${esc(s.id)}" tabindex="-1">${IC.trash}Delete</button><button class="li sw" data-act="toggle" data-id="${esc(s.id)}" aria-expanded="${open}">
     ${ring(m.pct,44,'var(--t)',Math.round(m.pct*100)+'')}
     <span class="li-b"><span class="li-t">${esc(p.label)}${effortTag(s)}${prs.length?`<span class="prb">${IC.trophy}${prs.length>1?prs.length+' PRs':'PR'}</span>`:''}</span>
     <span class="li-m">${fmtDate(s.date)} · ${m.mins?m.mins+' min · ':''}${fmtBig(m.vol)} lb</span></span><span class="chev">${IC.chev}</span></button>
     ${open?`<div class="hdet"><div class="hdet-m">${m.got} of ${m.goal} target reps</div>${lines}${s.notes?`<p class="small muted">${esc(s.notes)}</p>`:''}
-      <button class="btn sm ghost danger" data-act="del" data-id="${esc(s.id)}">${IC.trash}Delete workout</button></div>`:''}</div>`;
+      ${s.demo?'':`<div class="row"><button class="btn sm" data-act="historyedit" data-id="${esc(s.id)}">Edit workout</button><button class="btn sm ghost danger" data-act="del" data-id="${esc(s.id)}">${IC.trash}Delete workout</button></div>`}</div>`:''}</div>`;
 }
 /* ---------------- Progress ---------------- */
 function seriesFor(key,metric){
-  const pts=[];
+  const pts=[];let best=0;
   doneSessions().forEach(s=>{s.exercises.filter(e=>e.key===key).forEach(e=>{const m=exMetrics(e);if(!m.reps)return;
-    const v=metric==='top'?m.top:metric==='e1rm'?m.e1rm:m.vol;pts.push({d:s.date,v,s,e,m});});});
+    const v=metric==='top'?m.top:metric==='e1rm'?m.e1rm:m.vol;pts.push({d:s.date,v,s,e,m,pr:best>0&&v>best});best=Math.max(best,v);});});
   return pts;
 }
 const MET={e1rm:'Est. 1-rep max',top:'Top weight',vol:'Volume'};
@@ -1101,9 +1265,9 @@ function viewProgress(){
   const keys=[...new Set([...Object.values(PROGRAMS).flatMap(p=>p.ex.map(e=>e.key)),...doneSessions().flatMap(s=>s.exercises.map(e=>e.key))])];
   const rg=RANGES[S.progRange]||RANGES['3m'];
   let pts=seriesFor(S.progEx,S.progMetric);
-  if(rg[1])pts=pts.filter(p=>Date.now()-ts(p.d+'T12:00:00')<rg[1]*864e5);
+  if(rg[1])pts=pts.filter(p=>inRecentDays(p.d,rg[1]));
   let h=`<h2 class="lt">Progress</h2><div class="lgrid">${keys.map(k=>{const sp=seriesFor(k,'e1rm');const v=sp.length?sp[sp.length-1].v:0;
-      const c=sp.length>1?(v-sp[0].v)/sp[0].v*100:null;
+      const c=sp.length>1&&sp[0].v>0?(v-sp[0].v)/sp[0].v*100:null;
       return `<button class="lt-tile${k===S.progEx?' on':''}${sp.length?'':' nodata'}" data-act="pex" data-k="${esc(k)}" aria-pressed="${k===S.progEx}">
         <span class="lt-n">${esc(nameFor(k))}</span><span class="lt-row"><span class="lt-v num">${sp.length?fmtW(Math.round(v)):'—'}</span>
         ${c==null?'':`<span class="lt-c ${c>=0?'up':'dn'}">${c>=0?'+':'−'}${Math.abs(Math.round(c))}%</span>`}</span></button>`;}).join('')}</div>
@@ -1115,9 +1279,9 @@ function viewProgress(){
       <div class="headline"><span class="big num" id="hv">${fmtW(Math.round(last.v))}</span><small>${unit}</small>${pts.length>1?`<span class="delta ${ch>=0?'up':'dn'} num">${ch>=0?'▲':'▼'} ${Math.abs(Math.round(pc))}%</span>`:''}</div>
       <div class="small muted" id="hd">${fmtDate(last.d,{month:'short',day:'numeric'})} · latest</div>
       ${pts.length>1?lineChart(pts,unit):'<div class="empty">The chart appears after your second session.</div>'}${rangeSeg()}</section>`;
-    let run=0;const recent=pts.map((p,i)=>{const pr=i>0&&p.v>run;run=Math.max(run,p.v);return {...p,pr};}).slice(-5).reverse();
+    const recent=pts.slice(-5).reverse();
     h+=`<h3 class="sec">Recent sessions</h3><div class="list">${recent.map(p=>`<div class="li static"><span class="li-b"><span class="li-t">${fmtDate(p.d)}${p.pr?`<span class="prb">${IC.trophy}PR</span>`:''}</span>
-      <span class="li-m num">${fmtW(p.e.weight)} lb · ${repsStr(p.e)}</span></span><span class="li-v num">${fmtW(Math.round(p.v))}<small> ${unit}</small></span></div>`).join('')}</div>`;}
+      <span class="li-m num">${loggedLine(p.e)}</span></span><span class="li-v num">${fmtW(Math.round(p.v))}<small> ${unit}</small></span></div>`).join('')}</div>`;}
   const LV={muscles:'This week',weekly:'Workouts',monthly:'Volume'},lv=S.loadView||'muscles';
   h+=`<h3 class="sec">Training load</h3><div class="seg">${Object.keys(LV).map(k=>`<button data-act="loadv" data-v="${k}" class="${k===lv?'on':''}">${LV[k]}</button>`).join('')}</div>
     ${lv==='muscles'?muscleCard():lv==='weekly'?weekCard():monthVolume()}`;
@@ -1138,8 +1302,8 @@ function lineChart(pts,unit){
   let line='M'+P[0][0].toFixed(1)+' '+P[0][1].toFixed(1);
   for(let i=1;i<P.length;i++){const [ax,ay]=P[i-1],[bx,by]=P[i],cx=(ax+bx)/2;line+=` C${cx.toFixed(1)} ${ay.toFixed(1)} ${cx.toFixed(1)} ${by.toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)}`;}
   const area=line+` L${P[P.length-1][0].toFixed(1)} ${Y(y0).toFixed(1)} L${P[0][0].toFixed(1)} ${Y(y0).toFixed(1)} Z`;
-  let run=-Infinity;const dots=pts.map((p,i)=>{const pr=i>0&&p.v>run;run=Math.max(run,p.v);
-    return i===pts.length-1?'':pr?`<circle cx="${P[i][0].toFixed(1)}" cy="${P[i][1].toFixed(1)}" r="4.5" class="ch-pr"/>`:`<circle cx="${P[i][0].toFixed(1)}" cy="${P[i][1].toFixed(1)}" r="2.5" class="ch-dot"/>`;}).join('');
+  const dots=pts.map((p,i)=>{
+    return i===pts.length-1?'':p.pr?`<circle cx="${P[i][0].toFixed(1)}" cy="${P[i][1].toFixed(1)}" r="4.5" class="ch-pr"/>`:`<circle cx="${P[i][0].toFixed(1)}" cy="${P[i][1].toFixed(1)}" r="2.5" class="ch-dot"/>`;}).join('');
   const e=P[P.length-1];
   const months=[];const d=new Date(x0);d.setDate(1);d.setMonth(d.getMonth()+1);d.setHours(12);
   while(d.getTime()<=x1){months.push(`<text x="${X(d.getTime()).toFixed(1)}" y="${H-6}" class="ch-lbl" text-anchor="middle">${d.toLocaleDateString(undefined,{month:'short'})}</text>`);d.setMonth(d.getMonth()+1);}
@@ -1154,7 +1318,7 @@ function lineChart(pts,unit){
   return `<div class="chart-wrap"><svg class="chart" id="lc" viewBox="0 0 ${W} ${H}" role="img" aria-label="Progress chart. Drag across it to see each session.">
     <defs><linearGradient id="fillg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--accent);stop-opacity:.35"/><stop offset="1" style="stop-color:var(--accent);stop-opacity:0"/></linearGradient></defs>
     ${g}<path d="${area}" fill="url(#fillg)"/>${trend}<path d="${line}" fill="none" class="ch-line" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${dots}${bestLbl}
-    <circle cx="${e[0].toFixed(1)}" cy="${e[1].toFixed(1)}" r="5.5" class="ch-end" stroke-width="3"/>${months.join('')}
+    <circle cx="${e[0].toFixed(1)}" cy="${e[1].toFixed(1)}" r="5.5" class="${pts[pts.length-1].pr?'ch-pr':'ch-end'}" stroke-width="3"/>${months.join('')}
     <line id="scL" class="sc-line" x1="0" x2="0" y1="${T}" y2="${H-B}" visibility="hidden"/><circle id="scC" r="6" class="sc-dot" visibility="hidden"/></svg>
     <div class="legend"><span><i style="background:var(--pr);border-radius:99px"></i>Personal record</span>${perWk!=null?`<span><i class="lg-trend"></i>Trend ${perWk>=0?'+':'−'}${Math.abs(perWk).toFixed(1)} ${unit} per week</span>`:''}</div>
     <div class="hint" style="margin-top:6px">Drag across the chart to see each session.</div></div>`;
@@ -1165,7 +1329,7 @@ function scrub(ev){
   const q=c.P[bi],p=c.pts[bi];
   $('#scL').setAttribute('x1',q[0]);$('#scL').setAttribute('x2',q[0]);$('#scL').setAttribute('visibility','visible');
   $('#scC').setAttribute('cx',q[0]);$('#scC').setAttribute('cy',q[1]);$('#scC').setAttribute('visibility','visible');
-  $('#hv').textContent=fmtW(Math.round(p.v));$('#hd').textContent=`${fmtDate(p.d,{month:'short',day:'numeric'})} · ${fmtW(p.e.weight)} lb · ${repsStr(p.e)}`;
+  $('#hv').textContent=fmtW(Math.round(p.v));$('#hd').textContent=`${fmtDate(p.d,{month:'short',day:'numeric'})} · ${loggedLine(p.e)}`;
 }
 function unscrub(){if(!S.chart||!$('#lc'))return;const c=S.chart,p=c.pts[c.pts.length-1];
   $('#scL').setAttribute('visibility','hidden');$('#scC').setAttribute('visibility','hidden');
@@ -1198,11 +1362,12 @@ function weekBars(){
 /* ---------------- Settings ---------------- */
 function viewData(){
   const c=S.meta.sync||{};const signed=Sync.ready();
-  const dirty=[...S.sessions.values()].filter(s=>s.dirty).length;
-  const done=doneSessions();const demo=done.filter(s=>s.demo).length;const bytes=new Blob([JSON.stringify([...S.sessions.values()])]).size;
+  const dirty=Sync.pending().length,conflicts=Object.entries(S.meta.syncConflicts||{});
+  const recoveries=[...S.sessions.values()].filter(s=>s.recoveryCopy||s.parkedDraft||(s.conflictCopy&&!conflicts.some(([,cx])=>cx.copyId===s.id)));
+  const done=doneSessions();const demo=live().filter(s=>s.demo).length;const bytes=new Blob([JSON.stringify([...S.sessions.values()])]).size;
   const pv=window.LIFTLOG_PREVIEW?'<div class="card small note"><b>Desktop preview.</b> Workouts you log here stay in this browser only. Export and cloud backup are switched off inside Claude and work once the app is on GitHub Pages.</div>':'';
   const mem=S.memOnly?'<div class="card small note"><b>Storage is blocked in this browser.</b> The app works, but nothing is saved after you close it. Open it from your Home Screen icon, not a private tab.</div>':'';
-  const st=!signed?['off','Off']:S.syncErr?['err','Needs attention']:dirty?['wait',dirty+' waiting']:['ok','Up to date'];
+  const st=S.syncErr||conflicts.length?['err','Needs attention']:!signed?['off','Off']:dirty?['wait',dirty+' waiting']:['ok',c.lastSync?'Up to date':'Not yet synced'];
   return '<h2 class="lt">Settings</h2>'+mem+pv+`<h3 class="sec">Give Claude your history</h3><div class="card">
     <p class="small muted" style="margin-top:0">One file with every workout and a per-lift summary. Upload it to a chat when you have questions.</p>
     <button class="btn big primary" data-act="export">Export all workouts</button></div>
@@ -1212,30 +1377,60 @@ function viewData(){
       <div class="row" style="margin-top:12px"><button class="btn sm" data-act="syncnow">Sync now</button><button class="btn sm ghost danger" data-act="signout">Sign out</button></div>`
     :`<p class="small muted" style="margin-top:0">Copies every workout to your free Supabase database automatically. One-time setup; see the README.</p>
       <label class="lb" for="sbUrl">Project URL</label><input class="field" id="sbUrl" placeholder="https://xxxx.supabase.co" value="${esc(c.url||'')}" autocapitalize="off" autocorrect="off">
-      <label class="lb" for="sbKey">Anon (public) key</label><input class="field" id="sbKey" placeholder="eyJ…" value="${esc(c.key||'')}" autocapitalize="off" autocorrect="off">
+      <label class="lb" for="sbKey">Publishable or anon key</label><input class="field" id="sbKey" placeholder="eyJ…" value="${esc(c.key||'')}" autocapitalize="off" autocorrect="off">
       <label class="lb" for="sbEmail">Email</label><input class="field" id="sbEmail" type="email" value="${esc(c.email||'')}" autocapitalize="off">
       <label class="lb" for="sbPw">Password</label><input class="field" id="sbPw" type="password">
       ${S.syncErr?`<div class="small" style="color:var(--bad);margin-bottom:8px">${esc(S.syncErr)}</div>`:''}
       <button class="btn big primary" data-act="signin">Sign in &amp; sync</button>`}</div>
+  ${conflicts.length?`<h3 class="sec">Sync conflicts</h3><div class="card"><p class="small">Choose which version to sync. Recovery copies stay on your device and appear in exports.</p>${conflicts.map(([id,cx])=>{
+    const local=S.sessions.get(id),cloud=S.sessions.get(cx.copyId);
+    return `<div class="kv"><span>Device</span><b>${esc(workoutLabel(local))}</b></div>
+      ${cloud?`<div class="kv"><span>Cloud</span><b>${esc(workoutLabel(cloud))}</b></div>`:''}
+      <div class="row">${cloud?`<button class="btn sm" data-act="keepcloud" data-id="${esc(id)}">Keep cloud</button>`:''}<button class="btn sm" data-act="keeplocal" data-id="${esc(id)}">${cx.collision?'Back up as new':'Keep local'}</button></div>`;
+  }).join('')}</div>`:''}
+  ${recoveries.length||S.meta.quarantine?.length?`<h3 class="sec">Recovery</h3><div class="card"><p class="small">Export all workouts to download the recovery copies.</p>
+    ${S.meta.quarantine?.length?`<p class="small">${S.meta.quarantine.length} saved records could not be opened and are preserved for recovery.</p>`:''}
+    ${recoveries.map(s=>`<div class="row"><span>${esc(workoutLabel(s))}</span>${s.status==='active'&&!s.deleted?`<button class="btn sm" data-act="restoredraft" data-id="${esc(s.id)}">Resume draft</button>`:''}</div>`).join('')}</div>`:''}
   <h3 class="sec">Sample data</h3><div class="card"><p class="small muted" style="margin-top:0">${demo?demo+' sample workouts are loaded. They never sync or export.':'Load 12 weeks of made-up workouts to try History and Progress.'}</p>
     <button class="btn ${demo?'ghost danger':''}" data-act="${demo?'cleardemo':'loaddemo'}">${demo?'Remove sample workouts':'Load sample workouts'}</button></div>
-  <h3 class="sec">Import</h3><div class="card"><p class="small muted" style="margin-top:0">Restores a Lift Log export. Re-importing the same file won't create duplicates.</p>
+  <h3 class="sec">Import</h3><div class="card"><p class="small muted" style="margin-top:0">Restore a Lift Log export. Imported versions that differ from your workouts appear in Recovery.</p>
     <button class="btn" data-act="import">Choose file…</button></div>
-  <p class="foot" style="text-align:center">${done.length} workouts on this device · ${(bytes/1024).toFixed(1)} KB</p>`;
+  <p class="foot" style="text-align:center">${done.length} workouts on this device · ${(bytes/1024).toFixed(1)} KB · v8</p>`;
 }
 
 /* ---------------- Events ---------------- */
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(!b)return;S.tab=b.dataset.tab;render();window.scrollTo(0,0);});
 $('#syncPill').addEventListener('click',()=>{S.tab='data';render();});
+const workoutActions=new Set(['undo','quickorder','restpref','wdec','winc','addset','rdec','rinc','logset','editchip','wmenu','focusex','finish','discard']);
 document.addEventListener('click',async e=>{
   if(e.target.id==='sheet'){closeSheet();return;}
   const t=e.target.closest('[data-act]');if(!t)return;
   const act=t.dataset.act;const s=activeSession();
+  if(workoutActions.has(act)&&(!s||t.isConnected===false))return;
   try{
   if(act==='start'){closeSheet();if(s){toast('Finish or discard the current workout first');return;}await startSession(t.dataset.type);}
   else if(act==='preview'){if(s){toast('Finish or discard the current workout first');return;}previewSheet(t.dataset.type);}
   else if(act==='closesheet'){closeSheet();}
   else if(act==='toggle'){S.openId=S.openId===t.dataset.id?null:t.dataset.id;render();}
+  else if(act==='historyedit'){const x=S.sessions.get(t.dataset.id);if(x?.status==='done'&&!x.demo)historyEditSheet(x);}
+  else if(act==='hadd'||act==='hremove'){
+    const i=+t.dataset.ei,group=$(`[data-heditgroup="${i}"] .hsets`);
+    if(!group)return;
+    const e=S.sessions.get($('#sheetBody').querySelector('[data-act=historysave]')?.dataset.id)?.exercises[i];
+    if(!e)return;
+    const si=group.children.length;
+    if(act==='hremove'){if(si>1)group.lastElementChild.remove();}
+    else if(si<MAX_SETS)group.insertAdjacentHTML('beforeend',historySetRow(i,si,{reps:null,weight:e.weight||0}));
+  }
+  else if(act==='historysave'){
+    const orig=S.sessions.get(t.dataset.id);if(orig?.status!=='done'||orig.demo)return;
+    const fields=orig.exercises.map((_,ei)=>[...$('#sheetBody').querySelectorAll(`[data-hrep^="${ei}:"]`)].map((r,si)=>{
+      if(r.validity?.badInput)throw new Error('Reps must be a whole number from 0 to 100');
+      return {reps:r.value,weight:$('#sheetBody').querySelector(`[data-hweight="${ei}:${si}"]`)?.value};
+    }));
+    const copy=editedHistory(orig,$('#hdate').value,$('#hnotes').value,fields);
+    await saveSession(copy);closeSheet();render();toast('Workout updated');
+  }
   else if(act==='prange'){S.progRange=t.dataset.r;render();}
   else if(act==='effort'){const x=S.sessions.get(t.dataset.id);if(x){x.effort=x.effort===t.dataset.v?null:t.dataset.v;await saveSession(x);summarySheet(x);render();}}
   else if(act==='howpick'){openSheet(`<div class="sh-t">How the recommendation works</div>
@@ -1243,31 +1438,77 @@ document.addEventListener('click',async e=>{
     <div class="legend big-legend"><span><i style="background:var(--good)"></i>Due: rested and under target</span><span><i style="background:var(--accent)"></i>Ready</span><span><i style="background:var(--warn)"></i>Recovering: trained in the last 2 days</span></div>
     <p class="sh-d">The bars show each muscle's score; the workout's muscles are the bright ones.</p><button class="btn big primary" data-act="closesheet">Got it</button>`);}
   else if(act==='ringinfo'){openSheet(`<div class="sh-t">What the rings mean</div>
-    <p class="sh-d">A ring is the share of your target reps you completed. Three sets of 8, 8 and 7 on a 3×8 lift is 23 of 24 reps, or 96%. Hitting 100% on a lift is what moves its weight up next time.</p>
+    <p class="sh-d">A ring is the share of your target reps you completed. Three sets of 8, 8 and 7 on a 3×8 lift is 23 of 24 reps, or 96%. Hitting the rep target at the same weight on all planned sets raises the suggested weight next time.</p>
     <p class="sh-d">Tap a workout to see its sets. Swipe it left to delete.</p><button class="btn big primary" data-act="closesheet">Got it</button>`);}
-  else if(act==='addnote'){S.noteOpen=true;render();setTimeout(()=>{const n=$('#notes');if(n)n.focus();},50);}
   else if(act==='loadv'){S.loadView=t.dataset.v;render();}
-  else if(act==='exexp'){S.expandEx=+t.dataset.ei;render();}
-  else if(act==='calday'){const x=doneSessions().filter(q=>q.date===t.dataset.d).pop();if(!x)return;S.openId=x.id;
-    if(S.histRange!=='all'&&Date.now()-ts(x.date+'T12:00:00')>=30*864e5)S.histRange='all';render();
+  else if(act==='calday'){const x=historySessions().filter(q=>q.date===t.dataset.d).pop();if(!x)return;S.openId=x.id;
+    if(S.histRange!=='all'&&!inRecentDays(x.date,30))S.histRange='all';render();
     const el=document.getElementById('h-'+x.id);if(el){const y=el.getBoundingClientRect().top+window.scrollY-110;window.scrollTo({top:y,behavior:'smooth'});el.classList.add('flash');}}
-  else if(act==='wdec'||act==='winc'){const x=s.exercises[+t.dataset.ei];x.weight=Math.max(0,num(x.weight)+(act==='winc'?1:-1)*x.inc);await saveSession(s);render();}
-  else if(act==='addset'){const x=s.exercises[+t.dataset.ei];x.sets.push({target:x.hi,reps:null});await saveSession(s);closeSheet();render();toast('Set added');}
-  else if(act==='rdec'||act==='rinc'){const ei=+t.dataset.ei,si=+t.dataset.si;const r=draftReps(s,ei,si);S.draft={k:s.id+':'+ei+':'+si,reps:Math.max(0,Math.min(50,r+(act==='rinc'?1:-1)))};render();}
-  else if(act==='logset'){const ei=+t.dataset.ei,si=+t.dataset.si,x=s.exercises[ei];const w=$('#w'+ei);if(w)x.weight=Math.max(0,num(w.value));
-    x.sets[si].reps=draftReps(s,ei,si);S.draft=null;S.focusEx=null;await saveSession(s);render();
-    if(s.exercises.some(e=>e.sets.some(q=>q.reps==null)))Rest.start(x.key==='lateral_raise'?60:PROGRAMS[s.type].rest,nextUp(s,ei));else Rest.stop();}
-  else if(act==='editchip'){const [ei,si]=t.dataset.chip.split(':').map(Number),x=s.exercises[ei],set=x.sets[si];
-    const v=await ask(x.name+' · set '+(si+1)+' reps (blank = not done)',{input:true,value:set.reps,ok:'Save'});if(v===null)return;
-    set.reps=String(v).trim()===''?null:Math.max(0,Math.round(num(v)));await saveSession(s);render();}
+  else if(act==='undo'){await undoSet(s);}
+  else if(act==='applyupdate'){
+    if(activeSession()){toast('Finish the workout before updating');return;}
+    if(appRegistration?.waiting){S.applyUpdate=true;appRegistration.waiting.postMessage('SKIP_WAITING');}
+  }
+  else if(act==='quickorder'){
+    if(PROGRAMS[s.type].mode!=='quick')return;
+    s.orderMode=(s.orderMode||orderFor(s.type))==='alternate'?'straight':'alternate';
+    S.meta.quickOrder={...S.meta.quickOrder,[s.type]:s.orderMode};
+    render();await Promise.all([saveSession(s),saveMeta()]);
+  }
+  else if(act==='restpref'){
+    const x=s.exercises[focusIndex(s)];if(!x)return;
+    const sec=Math.max(15,Math.min(600,restDuration(s,x)+Number(t.dataset.delta)));
+    S.meta.rests={...S.meta.rests,[restKey(s,x)]:sec};render();await saveMeta();
+  }
+  else if(act==='wdec'||act==='winc'){
+    const ei=+t.dataset.ei,x=s.exercises[ei];if(!x||focusIndex(s)!==ei)return;
+    const input=$('#w'+ei),weight=input?inputWeight(input):x.weight;
+    x.weight=Math.max(0,Math.min(2000,weight+(act==='winc'?1:-1)*x.inc));
+    render();await saveSession(s);
+  }
+  else if(act==='addset'){
+    const ei=+t.dataset.ei,x=s.exercises[ei];
+    if(!x||x.sets.length>=MAX_SETS)return;
+    x.sets.push({target:x.hi,reps:null,weight:x.weight||0});s.focusEx=ei;S.draft=null;
+    closeSheet();render();await saveSession(s);toast('Set added');
+  }
+  else if(act==='rdec'||act==='rinc'){
+    const ei=+t.dataset.ei,si=+t.dataset.si;if(!activeSlot(s,ei,si))return;
+    const r=draftReps(s,ei,si);
+    S.draft={k:s.id+':'+ei+':'+si,reps:Math.max(0,Math.min(100,r+(act==='rinc'?1:-1)))};render();
+  }
+  else if(act==='logset'){if(t.dataset.id===s.id)await logSet(s,+t.dataset.ei,+t.dataset.si);}
+  else if(act==='editchip'){
+    const [ei,si]=t.dataset.chip.split(':').map(Number),x=s.exercises[ei],set=x?.sets[si];
+    if(!set||set.reps==null)return;
+    const v=await ask(x.name+' · set '+(si+1)+' reps (blank clears this set)',{input:true,value:set.reps,ok:'Next'});if(v===null)return;
+    const reps=checkedReps(v),w=await ask(x.name+' · set '+(si+1)+' weight (lb)',{input:true,value:actualWeight(x,set),ok:'Save'});
+    if(w===null||activeSession()!==s||x.sets[si]!==set)return;
+    const weight=checkedWeight(w);if(set.reps===reps&&actualWeight(x,set)===weight)return;
+    set.reps=reps;set.weight=weight;
+    if(s.undoLast?.ei===ei&&s.undoLast?.si===si)delete s.undoLast;
+    render();await saveSession(s);
+  }
   else if(act==='wmenu'){workoutMenu(s);}
-  else if(act==='focusex'){const ei=+t.dataset.ei;if(s.exercises[ei].sets.some(q=>q.reps==null)){S.focusEx=ei;S.draft=null;}closeSheet();render();window.scrollTo(0,0);}
-  else if(act==='finish'){const m0=sessMetrics(s);const empty=m0.total-m0.done;
+  else if(act==='focusex'){
+    const ei=+t.dataset.ei;if(!s.exercises[ei])return;
+    s.focusEx=ei;S.draft=null;closeSheet();render();await saveSession(s);window.scrollTo(0,0);
+  }
+  else if(act==='finish'){
+    const m=sessMetrics(s),empty=m.total-m.done;
     if(empty&&!await ask(empty+' set(s) not logged. Finish anyway?',{ok:'Finish'}))return;
-    closeSheet();s.status='done';s.noteOpen=false;S.noteOpen=false;s.finishedAt=new Date().toISOString();await saveSession(s);Rest.stop();
-    render();window.scrollTo(0,0);summarySheet(s);}
-  else if(act==='discard'){if(!await ask('Discard this workout?',{ok:'Discard',danger:true}))return;s.deleted=true;await saveSession(s);Rest.stop();closeSheet();render();}
-  else if(act==='del'){const x=S.sessions.get(t.dataset.id);if(x&&await ask('Delete this workout from '+fmtDate(x.date)+'?',{ok:'Delete',danger:true})){x.deleted=true;S.openId=null;await saveSession(x);render();toast('Workout deleted');}}
+    if(activeSession()!==s)return;
+    await flushNotes();if(activeSession()!==s)return;
+    closeSheet();s.status='done';s.finishedAt=new Date().toISOString();
+    delete s.undoLast;delete s.focusEx;S.draft=null;
+    await Promise.all([saveSession(s),Rest.stop()]);
+    render();window.scrollTo(0,0);summarySheet(s);
+  }
+  else if(act==='discard'){
+    if(!await ask('Discard this workout?',{ok:'Discard',danger:true})||activeSession()!==s)return;
+    s.deleted=true;S.draft=null;await Promise.all([saveSession(s),Rest.stop()]);closeSheet();render();
+  }
+  else if(act==='del'){const x=S.sessions.get(t.dataset.id);if(x&&!x.demo&&await ask('Delete this workout from '+fmtDate(x.date)+'?',{ok:'Delete',danger:true})){x.deleted=true;S.openId=null;await saveSession(x);render();toast('Workout deleted');}}
   else if(act==='metric'){S.progMetric=t.dataset.m;render();}
   else if(act==='pex'){S.progEx=t.dataset.k;render();}
   else if(act==='range'){S.histRange=t.dataset.r;render();}
@@ -1276,16 +1517,23 @@ document.addEventListener('click',async e=>{
   else if(act==='import'){$('#importFile').click();}
   else if(act==='loaddemo'){const n=await loadDemo();toast('Loaded '+n+' sample workouts');render();}
   else if(act==='cleardemo'){if(await ask('Remove all sample workouts? Your real workouts stay.',{ok:'Remove',danger:true})){const n=await clearDemo();toast('Removed '+n+' sample workouts');render();}}
+  else if(act==='retrylocal'){await retryLocal();render();}
+  else if(act==='keepcloud'||act==='keeplocal'){await resolveConflict(t.dataset.id,act==='keeplocal');closeSheet();render();}
+  else if(act==='restoredraft'){await restoreDraft(t.dataset.id);if(activeSession())S.tab='train';render();}
   else if(act==='signin'){S.syncErr='';const f={url:$('#sbUrl').value.trim(),key:$('#sbKey').value.trim(),email:$('#sbEmail').value.trim()};
-    S.meta.sync={...(S.meta.sync||{}),...f};t.disabled=true;t.textContent='Signing in…';
-    await Sync.signIn(f.url,f.key,f.email,$('#sbPw').value);render();}
+    t.disabled=true;
+    try{await Sync.signIn(f.url,f.key,f.email,$('#sbPw').value);}catch(err){S.syncErr=err.message;throw err;}render();}
   else if(act==='syncnow'){await Sync.run(true);render();}
-  else if(act==='signout'){if(await ask('Sign out of cloud backup? Workouts stay on this phone.',{ok:'Sign out',danger:true})){const c=S.meta.sync;S.meta.sync={url:c.url,key:c.key,email:c.email};await saveMeta();render();}}
-  }catch(err){S.syncErr=err.message;render();toast(err.message,'err');}
+  else if(act==='signout'){if(await ask('Sign out of cloud backup? Workouts stay on this device.',{ok:'Sign out',danger:true})){await Sync.signOut();render();}}
+  }catch(err){render();toast(err.message,'err');}
 });
 document.addEventListener('change',async e=>{
-  if(e.target.matches('[data-w]')){const s=activeSession();const x=s.exercises[+e.target.dataset.w];x.weight=Math.max(0,num(e.target.value));await saveSession(s);}
-  else if(e.target.id==='importFile'){const f=e.target.files[0];e.target.value='';if(!f)return;
+  if(e.target.matches('[data-w]')){
+    const s=activeSession(),x=s?.exercises[+e.target.dataset.w];if(!x)return;
+    try{const weight=inputWeight(e.target);if(weight!==x.weight){x.weight=weight;await saveSession(s);}}
+    catch(err){e.target.value=x.weight;render();toast(err.message,'err');}
+  }
+  else if(e.target.id==='importFile'){const f=e.target.files[0];e.target.value='';if(!f)return;if(f.size>8*1024*1024){toast('Import failed: file exceeds 8 MB','err');return;}
     try{const n=await importData(JSON.parse(await f.text()));toast('Imported '+n+' workout(s)');render();}catch(err){toast('Import failed: '+err.message);}}
 });
 document.addEventListener('pointermove',e=>{if(e.target.closest&&e.target.closest('#lc'))scrub(e);});
@@ -1293,6 +1541,19 @@ document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closes
 document.addEventListener('pointerout',e=>{if(e.target.closest&&e.target.closest('#lc')&&!(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('#lc')))unscrub();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet();});
 /* swipe a history row left to reveal Delete (iOS swipe action) */
+let appRegistration=null;
+function registerAppWorker(){
+  if(!('serviceWorker' in navigator)||(location.protocol!=='https:'&&location.hostname!=='localhost')||window.LIFTLOG_PREVIEW)return;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(S.applyUpdate)location.reload();});
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    appRegistration=reg;
+    if(reg.waiting){S.updateAvailable=true;render();}
+    reg.addEventListener('updatefound',()=>{
+      const w=reg.installing;
+      if(w)w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller){S.updateAvailable=true;render();}});
+    });
+  }).catch(()=>{});
+}
 let sw=null;
 document.addEventListener('pointerdown',e=>{const li=e.target.closest('.li.sw');document.querySelectorAll('.li.sw.open').forEach(x=>{if(x!==li){x.classList.remove('open');x.style.transform='';}});
   if(!li)return;sw={li,x0:e.clientX,y0:e.clientY,dx:0,on:false,base:li.classList.contains('open')?-96:0};});
@@ -1304,41 +1565,95 @@ document.addEventListener('pointerup',()=>{if(!sw)return;const s0=sw;sw=null;s0.
   s0.li.dataset.swiped='1';setTimeout(()=>{delete s0.li.dataset.swiped;},50);});
 document.addEventListener('click',e=>{const li=e.target.closest('.li.sw');if(li&&(li.dataset.swiped||li.classList.contains('open'))){e.stopImmediatePropagation();e.preventDefault();
   if(li.classList.contains('open')&&!li.dataset.swiped){li.classList.remove('open');li.style.transform='';}}},true);
-let notesT;
-document.addEventListener('input',e=>{if(e.target.matches('[data-notes]')){const s=activeSession();s.notes=e.target.value;clearTimeout(notesT);notesT=setTimeout(()=>saveSession(s),600);}});
-let press=null;
-document.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-set]');if(!b)return;
-  const p={b,long:false};p.t=setTimeout(()=>{p.long=true;b.style.transform='scale(1.12)';},450);press=p;});
-document.addEventListener('pointerup',e=>{if(!press)return;const p=press;press=null;clearTimeout(p.t);p.b.style.transform='';
-  const b=document.elementFromPoint(e.clientX,e.clientY);const hit=b&&b.closest('[data-set]');
-  if(p.long)editSet(p.b,true);else if(hit===p.b)editSet(p.b,false);});
-document.addEventListener('pointercancel',()=>{if(press){clearTimeout(press.t);press.b.style.transform='';press=null;}});
-document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-set]'))e.preventDefault();});
-async function editSet(b,exact){
-  const s=activeSession();if(!s)return;const [ei,si]=b.dataset.set.split(':').map(Number);const x=s.exercises[ei];const set=x.sets[si];
-  const wasEmpty=set.reps==null;
-  if(exact){const v=await ask(x.name+' · set '+(si+1)+' reps (blank = not done)',{input:true,value:set.reps??x.hi,ok:'Save'});if(v===null)return;set.reps=String(v).trim()===''?null:Math.max(0,Math.round(num(v)));}
-  else if(set.reps==null)set.reps=x.hi; else if(set.reps>0)set.reps--; else set.reps=null;
-  S.popSet=set.reps!=null?ei+':'+si:null;if(x.sets.every(q=>q.reps!=null)&&S.expandEx===ei)S.expandEx=null;await saveSession(s);render();S.popSet=null;
-  if(wasEmpty&&set.reps!=null){const p=PROGRAMS[s.type];
-    Rest.start(x.key==='lateral_raise'?60:p.rest,nextUp(s,ei));}
-}
-
+let notesT,notesPending;
+document.addEventListener('input',e=>{if(e.target.matches('[data-notes]')){const s=activeSession();if(!s)return;s.notes=e.target.value.slice(0,12000);notesPending=s;clearTimeout(notesT);notesT=setTimeout(()=>flushNotes().catch(()=>{}),600);}});
 /* ---------------- Export / Import ---------------- */
-function cleanSession(s){const o=JSON.parse(JSON.stringify(s));delete o.dirty;return o;}
-async function exportData(){
-  const done=doneSessions().filter(s=>!s.demo);
-  if(!done.length){toast('No real workouts to export yet');return;}
-  const summary={};
-  [...new Set(done.flatMap(s=>s.exercises.map(e=>e.key)))].forEach(k=>{
+function boundedString(v,max,fallback){
+  if(v==null&&fallback!==undefined)return fallback;
+  if(typeof v!=='string'||v.length>max)throw new Error('Invalid workout text.');
+  return v;
+}
+function boundedNumber(v,min,max,fallback,integer=false){
+  if(v==null&&fallback!==undefined)return fallback;
+  if(!Number.isFinite(v)||v<min||v>max||(integer&&!Number.isInteger(v)))throw new Error('Invalid workout number.');
+  return v;
+}
+function validId(value){
+  const id=boundedString(value,160);
+  if(!id.trim()||/[\x00-\x1f]/.test(id))throw new Error('Invalid workout ID.');
+  return id;
+}
+function validTime(v,fallback){
+  if(v==null||v==='')return fallback;
+  if(typeof v!=='string'||v.length>64||!Number.isFinite(Date.parse(v)))throw new Error('Invalid workout timestamp.');
+  return v;
+}
+function cleanSession(s){
+  if(!s||typeof s!=='object'||!Object.hasOwn(PROGRAMS,s.type)||!['active','done'].includes(s.status))throw new Error('Invalid workout record.');
+  const date=boundedString(s.date,10),d=new Date(date+'T12:00:00Z');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(+d)||d.toISOString().slice(0,10)!==date)throw new Error('Invalid workout date.');
+  if((s.deleted!=null&&typeof s.deleted!=='boolean')||!Array.isArray(s.exercises)||!s.exercises.length||s.exercises.length>30)throw new Error('Invalid workout exercises.');
+  const startedAt=validTime(s.startedAt,date+'T12:00:00.000Z');
+  const o={id:validId(s.id),type:s.type,date,status:s.status,startedAt,finishedAt:validTime(s.finishedAt,null),
+    notes:boundedString(s.notes,12000,''),deleted:s.deleted===true,
+    orderMode:['alternate','straight'].includes(s.orderMode)?s.orderMode:defaultOrder(s.type),
+    exercises:s.exercises.map(e=>{
+      if(!e||!Array.isArray(e.sets)||!e.sets.length||e.sets.length>100)throw new Error('Invalid exercise sets.');
+      const key=boundedString(e.key,100);
+      if(!/^[a-z0-9_]+$/i.test(key))throw new Error('Invalid exercise key.');
+      const def=defFor(key),hi=boundedNumber(e.hi,1,100,def?.hi||12,true),lo=boundedNumber(e.lo,1,hi,Math.min(hi,def?.lo||hi),true);
+      const weight=boundedNumber(e.weight,0,2000,0);
+      return {key,name:boundedString(e.name,160,def?.name||nameFor(key)),lo,hi,inc:boundedNumber(e.inc,0,2000,def?.inc||5),
+        note:boundedString(e.note,2000,def?.note||''),weight,sets:e.sets.map(x=>{
+          if(!x||typeof x!=='object')throw new Error('Invalid workout set.');
+          return {target:boundedNumber(x.target,1,100,hi,true),reps:boundedNumber(x.reps,0,100,null,true),weight:boundedNumber(x.weight,0,2000,weight)};
+        })};
+    })};
+  if(EFFORT.some(([key])=>key===s.effort))o.effort=s.effort;
+  return o;
+}
+function safePrefs(o){
+  const rests={},quickOrder={};
+  if(o==null)return {rests,quickOrder};
+  if(typeof o!=='object'||Array.isArray(o))throw new Error('Invalid preferences.');
+  for(const [key,dest] of [['rests',rests],['quickOrder',quickOrder]]){
+    if(o[key]==null)continue;
+    if(typeof o[key]!=='object'||Array.isArray(o[key]))throw new Error('Invalid preferences.');
+    const keys=key==='rests'?[...Object.keys(PROGRAMS),'lateral_raise',...QORDER.flatMap(t=>[t+':straight',t+':alternate'])]:QORDER;
+    for(const t of keys){
+      if(!Object.hasOwn(o[key],t))continue;
+      const v=o[key][t];
+      if(key==='rests')dest[t]=boundedNumber(v,15,600,undefined,true);
+      else{if(!['straight','alternate'].includes(v))throw new Error('Invalid workout order.');dest[t]=v;}
+    }
+  }
+  return {quickOrder,rests};
+}
+function exportPayload(){
+  const done=doneSessions(),summary=Object.create(null);
+  const sessions=[...S.sessions.values()].filter(s=>!s.demo);
+  for(const k of new Set(done.flatMap(s=>s.exercises.map(e=>e.key)))){
     const pts=[];done.forEach(s=>s.exercises.filter(e=>e.key===k).forEach(e=>{const m=exMetrics(e);if(m.reps)pts.push({d:s.date,e,m});}));
-    if(!pts.length)return;const f=pts[0],l=pts[pts.length-1];
-    summary[k]={name:nameFor(k),sessions:pts.length,first:{date:f.d,weight_lb:f.e.weight,reps:f.e.sets.map(x=>x.reps)},
-      latest:{date:l.d,weight_lb:l.e.weight,reps:l.e.sets.map(x=>x.reps)},best_est_1rm_lb:Math.round(Math.max(...pts.map(p=>p.m.e1rm))*10)/10};});
-  const payload={app:'lift-log',version:1,exportedAt:new Date().toISOString(),units:'lb',
+    if(!pts.length)continue;
+    const point=({d,e})=>({date:d,weight_lb:Math.max(0,...e.sets.filter(x=>x.reps>0).map(x=>x.weight??e.weight)),
+      reps:e.sets.map(x=>x.reps),weights_lb:e.sets.map(x=>x.weight??e.weight)});
+    summary[k]={name:nameFor(k),sessions:pts.length,first:point(pts[0]),latest:point(pts[pts.length-1]),
+      best_est_1rm_lb:Math.round(pts.reduce((best,p)=>Math.max(best,p.m.e1rm),0)*10)/10};
+  }
+  let preferences;try{preferences=safePrefs(S.meta);}catch(e){preferences=safePrefs(null);}
+  return {app:'lift-log',version:2,exportedAt:new Date().toISOString(),units:'lb',preferences,
     programs:Object.fromEntries(Object.entries(PROGRAMS).map(([k,p])=>[k,{label:p.label,mode:p.mode,exercises:p.ex.map(e=>({key:e.key,name:e.name,sets:e.sets,reps:e.lo===e.hi?e.hi:e.lo+'-'+e.hi}))}])),
-    summary,sessions:done.map(s=>{const o=cleanSession(s);const m=sessMetrics(s);o.metrics={minutes:m.mins,pct_target_reps:Math.round(m.pct*1000)/10,volume_lb:Math.round(m.vol)};
-      o.exercises.forEach(e=>{const x=exMetrics(e);e.metrics={total_reps:x.reps,volume_lb:Math.round(x.vol),est_1rm_lb:Math.round(x.e1rm*10)/10};delete e.why;});return o;})};
+    summary,sessions:sessions.map(s=>{
+      const o=cleanSession(s),m=sessMetrics(s);o.updatedAt=s.updatedAt||s.startedAt;
+      if(recovery(s)||s.parkedDraft){o.recoveryCopy=true;if(s.copyOf)o.copyOf=s.copyOf;}
+      o.metrics={minutes:m.mins,pct_target_reps:Math.round(m.pct*1000)/10,volume_lb:Math.round(m.vol)};
+      o.exercises.forEach(e=>{const x=exMetrics(e);e.metrics={total_reps:x.reps,volume_lb:Math.round(x.vol),est_1rm_lb:Math.round(x.e1rm*10)/10};});return o;
+    }),quarantine:(S.meta.quarantine||[]).map(x=>quarantineBackup(x.backup))};
+}
+async function exportData(){
+  try{await flushNotes();}catch(e){}
+  const payload=exportPayload();
+  if(!payload.sessions.length&&!payload.quarantine.length){toast('No real workouts to export yet');return;}
   const name='lift-log-'+today()+'.json';
   const file=new File([JSON.stringify(payload,null,1)],name,{type:'application/json'});
   if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});return;}catch(e){if(e.name==='AbortError')return;}}
@@ -1347,96 +1662,378 @@ async function exportData(){
 }
 async function importData(obj){
   if(!(obj&&obj.app==='lift-log'&&Array.isArray(obj.sessions)))throw new Error('not a Lift Log export');
-  const list=obj.sessions.map(s=>{const o=JSON.parse(JSON.stringify(s));delete o.metrics;(o.exercises||[]).forEach(e=>delete e.metrics);return o;})
-    .filter(s=>s&&s.id&&s.date&&Array.isArray(s.exercises)&&s.exercises.length);
-  let n=0;const writes=[];
-  for(const s of list){const cur=S.sessions.get(s.id);
-    if(!cur||ts(s.updatedAt)>ts(cur.updatedAt)){s.dirty=true;S.sessions.set(s.id,s);writes.push(s);n++;}}
-  if(writes.length){await DB.putMany('sessions',writes);Sync.schedule();}
-  return n;
+  if(JSON.stringify(obj).length>8*1024*1024)throw new Error('file exceeds 8 MB');if(obj.version!==1&&obj.version!==2)throw new Error('unsupported export version');if(obj.sessions.length>2000)throw new Error('too many workouts');
+  if(obj.quarantine!=null&&(!Array.isArray(obj.quarantine)||obj.quarantine.length>2000))throw new Error('Invalid recovery records.');
+  const prefs=safePrefs(obj.preferences),list=obj.sessions.map(s=>{
+    const o=cleanSession(s);o.updatedAt=validTime(s.updatedAt,o.startedAt);
+    if(s.recoveryCopy===true||s.conflictCopy===true){o.recoveryCopy=true;if(s.copyOf!=null)o.copyOf=validId(s.copyOf);}
+    return o;
+  });
+  const staged=new Map();let active=!!activeSession();
+  const copies=new Map();
+  S.sessions.forEach(s=>{if(s.copyOf)copies.set(s.copyOf,[...(copies.get(s.copyOf)||[]),s]);});
+  for(let s of list.sort((a,b)=>Number(b.deleted)-Number(a.deleted)||ts(b.updatedAt)-ts(a.updatedAt))){
+    const cur=staged.get(s.id)||S.sessions.get(s.id);
+    if(cur){
+      if(sameWorkout(s,cur))continue;
+      const duplicate=(copies.get(s.id)||[]).some(x=>sameWorkout({...s,id:x.id},x));
+      if(duplicate)continue;
+      s={...s,id:'import-copy-'+uid(),copyOf:s.id,recoveryCopy:true};
+    }
+    if(s.status==='active'&&!s.deleted&&!recovery(s)){if(active)s.recoveryCopy=true;else active=true;}
+    s.dirty=!recovery(s);s.localVersion=1;
+    if(S.meta.binding)s.owner=S.meta.binding;
+    staged.set(s.id,s);
+    if(s.copyOf)copies.set(s.copyOf,[...(copies.get(s.copyOf)||[]),s]);
+  }
+  const quarantine=uniqueQuarantine([...(S.meta.quarantine||[]),...(obj.quarantine||[]).map(raw=>({backup:quarantineBackup(raw)}))]);
+  const all=[...staged.values()],meta={...S.meta,quarantine,quickOrder:{...S.meta.quickOrder,...prefs.quickOrder},rests:{...S.meta.rests,...prefs.rests}};
+  if(all.length||obj.preferences||obj.quarantine?.length){
+    await DB.batch(all,meta);
+    for(const s of all)if(!S.sessions.has(s.id))S.sessions.set(s.id,s);
+    Object.assign(S.meta,{quickOrder:meta.quickOrder,rests:meta.rests,quarantine});Sync.schedule();
+  }
+  return all.length;
 }
 
 /* ---------------- Cloud sync (Supabase REST) ---------------- */
-const Sync={busy:false,timer:null,
+async function fetchTimed(url,opts={}){
+  const ac=new AbortController(),timer=setTimeout(()=>ac.abort(),12000);
+  try{
+    const response=await fetch(url,{...opts,signal:ac.signal,redirect:'error'});
+    let body,invalid=false;
+    try{body=await response.json();}catch(e){if(ac.signal.aborted)throw e;invalid=true;}
+    return {ok:response.ok,status:response.status,json:async()=>{if(invalid)throw new Error('Supabase returned invalid JSON.');return body;}};
+  }
+  catch(e){throw syncFailure(ac.signal.aborted?'Cloud request timed out.':'Could not reach Supabase. Check the project URL and connection.',true);}
+  finally{clearTimeout(timer);}
+}
+function syncFailure(message,retry=false,expired=false){return Object.assign(new Error(message),{retry,expired});}
+const upgradeMessage='Cloud backup needs the Supabase upgrade SQL. Local changes are still safe.';
+const revision=v=>Number.isSafeInteger(v)&&v>=0;
+const bindingFor=c=>JSON.stringify([c.url,c.accountId]);
+const MAX_SYNC_RETRIES=5;
+function projectURL(input){
+  let u;try{u=new URL(input);}catch(e){}
+  if(!u||u.protocol!=='https:'||u.username||u.password||u.pathname!=='/'||u.search||u.hash)throw new Error('Enter the HTTPS project URL from Supabase.');
+  return u.origin;
+}
+function verifyPublicKey(key){
+  if(/^sb_publishable_[A-Za-z0-9_-]+$/.test(key))return;
+  try{const parts=key.split('.');if(parts.length===3&&parts.every(p=>/^[A-Za-z0-9_-]+$/.test(p))&&
+    JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/'))).role==='anon')return;}catch(e){}
+  throw new Error('Use your Supabase publishable or anon public key.');
+}
+function cloudRow(row,expected){
+  if(!row||!revision(row.revision)||!row.data||row.id!==row.data.id||(expected!=null&&row.id!==expected))throw new Error('Invalid cloud workout record.');
+  const s=cleanSession(row.data);
+  s.updatedAt=validTime(row.updated_at,null);if(!s.updatedAt)throw new Error('Invalid cloud workout timestamp.');
+  s.syncRevision=row.revision;s.dirty=false;
+  return s;
+}
+function conflictFor(meta,id){return Object.hasOwn(meta.syncConflicts||{},id)?meta.syncConflicts[id]:null;}
+function withConflict(meta,id,entry){
+  const entries=new Map(Object.entries(meta.syncConflicts||{}));
+  if(entry)entries.set(id,entry);else entries.delete(id);
+  return Object.fromEntries(entries);
+}
+const Sync={busy:false,timer:null,retries:0,generation:0,expired:false,
   cfg(){return S.meta.sync||null;},
-  ready(){const c=this.cfg();return !!(c&&c.url&&c.key&&c.refresh);},
-  async signIn(url,key,email,pw){
-    url=url.replace(/\/+$/,'');
-    if(!/^https:\/\//.test(url)||!key||!email||!pw)throw new Error('Fill in all four fields');
-    let r;try{r=await fetch(url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});}
-    catch(e){throw new Error('Could not reach Supabase. Check the URL and your connection.');}
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(j.error_description||j.msg||j.message||('Sign-in failed ('+r.status+')'));
-    S.meta.sync={url,key,email,access:j.access_token,refresh:j.refresh_token,expiresAt:Date.now()+(j.expires_in||3600)*1000,lastSync:null,lastPull:null};
-    await saveMeta();await this.run(true);if(!S.syncErr)toast('Cloud backup on');
+  ready(){const c=this.cfg();return !!(c&&c.url&&c.key&&c.refresh&&!this.expired);},
+  current(c,g){return this.cfg()===c&&this.generation===g;},
+  check(c,g){if(!this.current(c,g))throw new Error('Cloud account changed.');},
+  owner(c){return c?.accountId?bindingFor(c):null;},
+  eligible(s,c){const owner=this.owner(c);return !s.demo&&!recovery(s)&&!!owner&&(!s.owner||s.owner===owner||s.owner===c.accountId);},
+  pending(c=this.cfg()){return [...S.sessions.values()].filter(s=>s.dirty&&this.eligible(s,c)&&!conflictFor(S.meta,s.id));},
+  invalidate(){this.generation++;clearTimeout(this.timer);this.timer=null;this.retries=0;this.expired=false;},
+  async signIn(input,key,email,pw){
+    const url=projectURL(input);verifyPublicKey(key);
+    if(!email||!pw)throw new Error('Enter the cloud account email and password.');
+    const prior=this.cfg();this.invalidate();const g=this.generation;
+    const r=await fetchTimed(url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+    this.check(prior,g);
+    if(!r.ok)throw new Error('Sign-in failed. Check the project, public key, email and password.');
+    const j=await r.json();this.check(prior,g);
+    if(!j.user?.id||typeof j.user.id!=='string'||typeof j.access_token!=='string'||typeof j.refresh_token!=='string')throw new Error('Supabase returned an invalid sign-in response.');
+    const c={url,key,email:j.user.email||email,accountId:j.user.id,access:j.access_token,refresh:j.refresh_token,expiresAt:Date.now()+(j.expires_in||3600)*1000,lastSync:null};
+    if(S.meta.binding&&S.meta.binding!==bindingFor(c))throw new Error('This device’s workouts are linked to a different cloud account or project. Use the original account or a separate browser profile.');
+    if(!S.meta.binding&&prior?.url&&[...S.sessions.values()].some(s=>!s.demo)&&
+      (projectURL(prior.url)!==url||(prior.accountId?prior.accountId!==c.accountId:prior.email?.toLowerCase()!==c.email.toLowerCase())))throw new Error('Sign in with the cloud account previously used on this device.');
+    S.meta.binding=bindingFor(c);S.meta.sync=c;S.syncErr='';
+    await saveMeta();this.check(c,g);
+    await this.run(true);
+    if(this.current(c,g)&&!S.syncErr)toast('Cloud backup on');
   },
-  async token(){
-    const c=this.cfg();if(c.access&&Date.now()<c.expiresAt-60000)return c.access;
-    const r=await fetch(c.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:c.refresh})});
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok){if(r.status>=400&&r.status<500){delete c.refresh;delete c.access;await saveMeta();}throw new Error('Cloud sign-in expired. Sign in again in Settings.');}
-    c.access=j.access_token;c.refresh=j.refresh_token;c.expiresAt=Date.now()+(j.expires_in||3600)*1000;await saveMeta();return c.access;
+  async signOut(){
+    this.invalidate();
+    const c=this.cfg();if(!c)return;
+    S.meta.sync={url:c.url,key:c.key,email:c.email,accountId:c.accountId};
+    S.syncErr='';await saveMeta();
   },
-  schedule(){clearTimeout(this.timer);this.timer=setTimeout(()=>this.run(),2500);renderSyncPill();},
-  async run(manual){
-    if(!this.ready()||this.busy){renderSyncPill();return;}
+  authError(r,message){
+    if(r.status===400||r.status===401||r.status===403)return syncFailure('Cloud sign-in expired. Sign in again in Settings.',false,true);
+    return syncFailure(message+' ('+r.status+').',r.status===429||r.status>=500);
+  },
+  async token(c,g){
+    if(c.access&&Date.now()<c.expiresAt-60000)return c.access;
+    const r=await fetchTimed(c.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:c.refresh})});
+    this.check(c,g);if(!r.ok)throw this.authError(r,'Cloud token refresh failed');
+    const j=await r.json();this.check(c,g);
+    if(typeof j.access_token!=='string'||typeof j.refresh_token!=='string'||(c.accountId&&j.user?.id&&c.accountId!==j.user.id))throw new Error('Supabase returned an invalid session.');
+    if(j.user?.id&&typeof j.user.id==='string')this.bind(c,g,j.user.id);
+    c.access=j.access_token;c.refresh=j.refresh_token;c.expiresAt=Date.now()+(j.expires_in||3600)*1000;
+    await saveMeta();this.check(c,g);return c.access;
+  },
+  bind(c,g,id){
+    this.check(c,g);
+    const owner=bindingFor({...c,accountId:id});
+    if(S.meta.binding&&S.meta.binding!==owner)throw new Error('Cloud account differs from this device’s saved account.');
+    S.meta.binding=owner;c.accountId=id;
+  },
+  schedule(delay=2500,backoff=false){
+    renderSyncPill();
+    if(!this.ready()||!navigator.onLine||(!backoff&&(!this.pending().length||S.syncErr)))return;
+    clearTimeout(this.timer);this.timer=setTimeout(()=>{this.timer=null;this.run(false,backoff);},delay);
+  },
+  async rpc(c,g,h,id,data,expected){
+    const r=await fetchTimed(c.url+'/rest/v1/rpc/lift_session_save',{method:'POST',headers:h,body:JSON.stringify({p_id:id,p_data:data,p_expected_revision:expected})});
+    this.check(c,g);
+    if(r.status===404)throw new Error(upgradeMessage);
+    if(!r.ok){
+      if(r.status===400){const err=await r.json().catch(()=>({}));this.check(c,g);if(err.code==='PGRST202'||err.code==='42883')throw new Error(upgradeMessage);}
+      if(r.status===401)c.expiresAt=0;
+      throw syncFailure('Cloud save failed ('+r.status+').',r.status===401||r.status===429||r.status>=500);
+    }
+    const raw=await r.json();this.check(c,g);const result=Array.isArray(raw)?raw[0]:raw;
+    if((result?.ok!==true||result.conflict!==false)&&(result?.ok!==false||result.conflict!==true))throw new Error('Cloud save returned an invalid result.');
+    if(result.conflict&&result.row===null)return {ok:false,row:null};
+    return {ok:result.ok,row:cloudRow(result.row,id)};
+  },
+  async pull(c,g,h){
+    const rows=new Map();let offset=0;
+    for(;;){
+      const q=c.url+'/rest/v1/lift_sessions?select=id,data,updated_at,revision&order=id.asc&limit=500&offset='+offset;
+      const r=await fetchTimed(q,{headers:h});this.check(c,g);
+      if(!r.ok){
+        if(r.status===400||r.status===404){
+          const error=await r.json().catch(()=>({}));this.check(c,g);
+          if(r.status===404||error.code==='42703'||error.code==='PGRST204')throw new Error(upgradeMessage);
+        }
+        if(r.status===401)c.expiresAt=0;
+        throw syncFailure('Cloud download failed ('+r.status+').',r.status===401||r.status===429||r.status>=500);
+      }
+      const page=await r.json();this.check(c,g);
+      if(!Array.isArray(page)||page.length>500)throw new Error('Invalid cloud workout page.');
+      for(const raw of page){if(raw&&raw.revision==null)throw new Error(upgradeMessage);const s=cloudRow(raw);rows.set(s.id,s);}
+      if(!page.length)return rows;
+      offset+=page.length;if(offset>100000)throw new Error('Cloud result is unexpectedly large.');
+    }
+  },
+  async applyPull(c,g,remote){
+    const staged=[],owner=this.owner(c),existingActive=activeSession();
+    let conflicts=S.meta.syncConflicts,selected=existingActive?.id,conflictChanged=false;
+    for(const s of remote.values()){
+      const cur=S.sessions.get(s.id);
+      if(cur&&!this.eligible(cur,c))continue;
+      if(cur?.dirty){
+        if(cur.syncRevision===s.syncRevision||conflictFor(S.meta,s.id))continue;
+        if(sameWorkout(cur,s)){
+          staged.push({before:cur,version:cur.localVersion,row:{...cur,syncRevision:s.syncRevision,owner,dirty:false}});
+          continue;
+        }
+        const cloud={...s,id:'cloud-copy-'+uid(),copyOf:s.id,conflictCopy:true,owner};
+        staged.push({row:cloud});
+        conflicts=withConflict({syncConflicts:conflicts},s.id,{copyId:cloud.id,revision:s.syncRevision});
+        conflictChanged=true;
+        continue;
+      }
+      if(cur&&cur.syncRevision===s.syncRevision&&cur.owner===owner)continue;
+      s.owner=owner;
+      if(s.status==='active'&&!s.deleted){if(selected&&selected!==s.id)s.parkedDraft=true;else selected=s.id;}
+      staged.push({before:cur,version:cur?.localVersion,row:s});
+    }
+    if(!staged.length)return false;
+    const meta=conflictChanged?{...S.meta,syncConflicts:conflicts}:null;
+    await DB.batch(staged.map(x=>x.row),meta);this.check(c,g);
+    for(const {before,version,row} of staged){
+      const current=S.sessions.get(row.id);
+      if(current===before&&current?.localVersion===version){S.sessions.set(row.id,row);S.persistFailures.delete(row.id);}
+    }
+    if(conflictChanged)S.meta.syncConflicts=conflicts;
+    refreshSaveStatus();return true;
+  },
+  async saveConflict(c,g,local,cloud){
+    if(conflictFor(S.meta,local.id))return;
+    const backup=cloud?{...cloud,id:'cloud-copy-'+uid(),copyOf:local.id,conflictCopy:true,owner:this.owner(c)}:null;
+    const entry=backup?{copyId:backup.id,revision:cloud.syncRevision}:{collision:true};
+    const conflicts=withConflict(S.meta,local.id,entry);
+    await DB.batch(backup?[backup]:[],{...S.meta,syncConflicts:conflicts});this.check(c,g);
+    if(backup)S.sessions.set(backup.id,backup);
+    S.meta.syncConflicts=conflicts;
+  },
+  async run(manual=false,backoff=false){
+    if(manual){clearTimeout(this.timer);this.timer=null;this.retries=0;}
+    if(this.busy){if(manual)this.requested=true;return;}
+    if(!this.ready()){renderSyncPill();return;}
     if(!navigator.onLine){renderSyncPill();if(manual)throw new Error('Offline. Changes will sync when you reconnect.');return;}
+    if(!manual&&!backoff&&this.timer&&S.syncErr)return;
     this.busy=true;renderSyncPill();
+    const c=this.cfg(),g=this.generation;let retry=false,changed=false;
     try{
-      const c=this.cfg();const tok=await this.token();
+      projectURL(c.url);verifyPublicKey(c.key);
+      const tok=await this.token(c,g);this.check(c,g);
       const h={apikey:c.key,Authorization:'Bearer '+tok,'Content-Type':'application/json'};
-      const dirty=[...S.sessions.values()].filter(s=>s.dirty&&!s.demo);
-      if(dirty.length){
-        const sent=new Map(dirty.map(s=>[s.id,s.updatedAt]));
-        const r=await fetch(c.url+'/rest/v1/lift_sessions?on_conflict=id',{method:'POST',headers:{...h,Prefer:'resolution=merge-duplicates,return=minimal'},
-          body:JSON.stringify(dirty.map(s=>({id:s.id,data:cleanSession(s),updated_at:s.updatedAt})))});
-        if(!r.ok)throw new Error('Upload failed ('+r.status+'): '+(await r.text()).slice(0,140));
-        const done=[];for(const [id,u] of sent){const s=S.sessions.get(id);if(s&&s.updatedAt===u){s.dirty=false;done.push(s);}}
-        if(done.length)await DB.putMany('sessions',done);
+      if(!c.accountId){
+        const r=await fetchTimed(c.url+'/auth/v1/user',{headers:h});this.check(c,g);
+        if(!r.ok)throw this.authError(r,'Cloud account verification failed');
+        const user=await r.json();this.check(c,g);
+        if(typeof user.id!=='string'||!user.id)throw new Error('Cloud account could not be verified.');
+        this.bind(c,g,user.id);await saveMeta();this.check(c,g);
+      }else if(!S.meta.binding){this.bind(c,g,c.accountId);await saveMeta();this.check(c,g);}
+      if(this.owner(c)!==S.meta.binding)throw new Error('Cloud account differs from this device’s saved account.');
+      S.syncErr='';
+      const remote=await this.pull(c,g,h);this.check(c,g);
+      try{await flushNotes();}catch(e){}
+      this.check(c,g);
+      changed=await this.applyPull(c,g,remote);this.check(c,g);
+      for(const {id} of this.pending(c)){
+        const snap=S.sessions.get(id);
+        if(!snap?.dirty||!this.eligible(snap,c)||conflictFor(S.meta,id))continue;
+        const sentVersion=snap.localVersion,sent=cleanSession(snap);
+        const result=await this.rpc(c,g,h,id,sent,snap.syncRevision??null);this.check(c,g);
+        const now=S.sessions.get(id);
+        if(!now||!this.eligible(now,c))continue;
+        if(!result.ok){
+          if(result.row&&sameWorkout(sent,result.row)){
+            await this.ack(c,g,now,sentVersion,result.row);this.check(c,g);
+          }else{await this.saveConflict(c,g,now,result.row);this.check(c,g);changed=true;}
+          continue;
+        }
+        if(!sameWorkout(sent,result.row))throw new Error('Cloud save returned different workout data.');
+        await this.ack(c,g,now,sentVersion,result.row);this.check(c,g);
       }
-      let pulled=0,maxU=c.lastPull,offset=0;const writes=[];
-      for(;;){
-        let q=c.url+'/rest/v1/lift_sessions?select=id,data,updated_at&order=updated_at.asc&limit=500&offset='+offset;
-        if(c.lastPull)q+='&updated_at=gt.'+encodeURIComponent(c.lastPull);
-        const r=await fetch(q,{headers:h});if(!r.ok)throw new Error('Download failed ('+r.status+')');
-        const rows=await r.json();
-        for(const row of rows){const cur=S.sessions.get(row.id);
-          if(!maxU||ts(row.updated_at)>ts(maxU))maxU=row.updated_at;
-          if(!cur||(!cur.dirty&&ts(row.updated_at)>ts(cur.updatedAt))){const s=row.data;s.updatedAt=row.updated_at;s.dirty=false;S.sessions.set(s.id,s);writes.push(s);pulled++;}}
-        if(rows.length<500)break;offset+=500;
-      }
-      if(writes.length)await DB.putMany('sessions',writes);
-      c.lastPull=maxU;c.lastSync=Date.now();S.syncErr='';await saveMeta();
-      if(pulled&&!manual)render();
-    }catch(e){S.syncErr=e.message;if(manual)throw e;}
-    finally{this.busy=false;renderSyncPill();if([...S.sessions.values()].some(s=>s.dirty&&!s.demo)&&!S.syncErr)this.schedule();}
+      c.lastSync=Date.now();this.retries=0;await saveMeta();this.check(c,g);
+    }catch(e){
+      if(!this.current(c,g))return;
+      S.syncErr=e.message;this.expired=!!e.expired;retry=e.retry&&this.retries<MAX_SYNC_RETRIES;
+      if(manual)throw e;
+    }finally{
+      this.busy=false;
+      if(changed&&this.current(c,g))render();else renderSyncPill();
+      if(this.requested){this.requested=false;if(this.ready())this.run(true).catch(e=>{S.syncErr=e.message;render();});}
+      else if(this.current(c,g)&&retry){this.retries++;this.schedule(Math.min(180000,15000*2**(this.retries-1)),true);}
+      else if(this.current(c,g))this.schedule();
+    }
+  },
+  async ack(c,g,now,sentVersion,server){
+    const unchanged=now.localVersion===sentVersion;
+    const row={...now,owner:this.owner(c),syncRevision:server.syncRevision,dirty:!unchanged};
+    if(unchanged)row.updatedAt=server.updatedAt;
+    // An edit during the write must retain the acknowledged revision.
+    Object.assign(now,row);
+    await persist([now.id],()=>DB.put('sessions',row));this.check(c,g);
   }
 };
+function sameWorkout(a,b){return JSON.stringify(cleanSession(a))===JSON.stringify(cleanSession(b));}
+function workoutLabel(s){
+  if(!s)return 'Workout';
+  const status=s.deleted?'Deleted':s.status==='active'?'Draft':'Completed';
+  return PROGRAMS[s.type].label+' · '+fmtDate(s.date)+' · '+status+' · '+sessMetrics(s).done+' sets';
+}
+async function restoreDraft(id){
+  if(activeSession())throw new Error('Finish or discard your current workout before resuming a draft.');
+  const s=S.sessions.get(id);
+  if(!s||s.status!=='active'||s.deleted)return;
+  if(s.parkedDraft){delete s.parkedDraft;await persist([s.id],()=>DB.put('sessions',s));return;}
+  if(recovery(s)){
+    const draft={...cleanSession(s),id:uid()};
+    await saveSession(draft);
+  }
+}
+async function resolveConflict(id,keepLocal){
+  const cx=conflictFor(S.meta,id),local=S.sessions.get(id),cloud=cx?.copyId&&S.sessions.get(cx.copyId);
+  if(!cx||!local||(!cloud&&!cx.collision))return;
+  const conflicts=withConflict(S.meta,id,null),meta={...S.meta,syncConflicts:conflicts};
+  const before=local.localVersion;let rows;
+  if(cx.collision){
+    if(!keepLocal)return;
+    const backup={...local,recoveryCopy:true,dirty:false};
+    const replacement={...local,id:uid(),syncRevision:undefined,localVersion:1,dirty:true};
+    rows=[backup,replacement];
+  }else if(keepLocal){
+    rows=[{...local,syncRevision:cx.revision,dirty:true,localVersion:(before||0)+1}];
+  }else{
+    const backup={...local,id:'local-copy-'+uid(),copyOf:id,recoveryCopy:true,dirty:false};
+    const selected={...cloud,id,conflictCopy:false,copyOf:undefined};
+    if(selected.status==='active'&&activeSession()?.id!==id&&activeSession())selected.parkedDraft=true;
+    rows=[backup,selected];
+  }
+  await DB.batch(rows,meta);
+  for(const row of rows){
+    if(row.id!==id||S.sessions.get(id)?.localVersion===before)S.sessions.set(row.id,row);
+  }
+  S.meta.syncConflicts=conflicts;
+  Sync.schedule();
+}
 function renderSyncPill(){
-  const p=$('#syncPill');const n=[...S.sessions.values()].filter(s=>s.dirty&&!s.demo).length;
-  p.className='pill';p.hidden=!Sync.ready();if(p.hidden)return;
+  const p=$('#syncPill');if(!p)return;
+  const n=Sync.pending().length,blocked=Object.keys(S.meta.syncConflicts||{}).length;
+  if(S.syncErr||blocked){p.className='pill err';p.hidden=false;p.textContent=blocked?'Sync conflict':'Sync issue';return;}
+  p.className='pill';p.hidden=false;if(!Sync.ready()){p.textContent='On device';return;}
   if(Sync.busy){p.textContent='Syncing…';return;}
-  if(S.syncErr){p.className='pill err';p.textContent='Sync issue';return;}
   if(!navigator.onLine&&n){p.className='pill wait';p.textContent='Offline · '+n+' waiting';return;}
   if(n){p.className='pill wait';p.textContent=n+' waiting';return;}
-  p.className='pill ok';p.textContent='Synced';
+  p.className='pill ok';p.textContent=Sync.cfg()?.lastSync?'Synced':'Cloud ready';
 }
-window.addEventListener('online',()=>Sync.run());
+window.addEventListener('online',()=>{Sync.retries=0;clearTimeout(Sync.timer);Sync.timer=null;Sync.run();});
 window.addEventListener('offline',renderSyncPill);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){Sync.run();render();}else Wake.sync();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){flushNotes().catch(()=>{});Sync.run();render();}else{flushNotes().catch(()=>{});Wake.sync();}});
+async function flushNotes(){const s=notesPending;if(!s)return;notesPending=null;clearTimeout(notesT);await saveSession(s);}
 
 /* ---------------- Boot ---------------- */
+function quarantineBackup(raw){
+  const fields=['id','type','date','status','startedAt','finishedAt','notes','deleted','orderMode','exercises','effort','updatedAt',
+    'key','name','lo','hi','inc','note','weight','sets','target','reps'];
+  function sanitize(v,depth){
+    if(depth>8)return null;
+    if(Array.isArray(v))return v.slice(0,200).map(x=>sanitize(x,depth+1));
+    if(v&&typeof v==='object')return Object.fromEntries(fields.filter(k=>Object.hasOwn(v,k)).map(k=>[k,sanitize(v[k],depth+1)]));
+    if(typeof v==='string')return v.slice(0,12000);
+    return v??null;
+  }
+  return sanitize(raw,0);
+}
+function uniqueQuarantine(rows){return [...new Map(rows.map(row=>[JSON.stringify(row),row])).values()];}
+function loadStored(sessions,metadata){
+  S.meta=metadata&&typeof metadata==='object'&&!Array.isArray(metadata)?metadata:{};
+  const c=S.meta.sync;
+  if(c?.url){
+    try{c.url=projectURL(c.url);if(c.accountId&&!S.meta.binding)S.meta.binding=bindingFor(c);}catch(e){}
+  }
+  const quarantine=[];
+  for(const raw of sessions){
+    try{
+      const s={...raw,...cleanSession(raw),updatedAt:validTime(raw.updatedAt,raw.startedAt||raw.date+'T12:00:00Z')};
+      // Preserve device UI state and normalize the old per-lift weight.
+      s.exercises=s.exercises.map((e,i)=>({...e,why:raw.exercises[i].why,sets:e.sets.map((set,j)=>({...set,logToken:raw.exercises[i].sets[j].logToken}))}));
+      if(s.undoLast&&(!s.exercises[s.undoLast.ei]?.sets[s.undoLast.si]))delete s.undoLast;
+      if(!revision(s.syncRevision))delete s.syncRevision;
+      if(s.owner&&s.owner!==S.meta.binding&&s.owner!==c?.accountId)s.recoveryCopy=true;
+      if(s.status==='active'&&!s.deleted&&!recovery(s)&&activeSession())s.parkedDraft=true;
+      S.sessions.set(s.id,s);
+    }catch(e){quarantine.push({backup:quarantineBackup(raw)});}
+  }
+  S.meta.quarantine=uniqueQuarantine([...(Array.isArray(S.meta.quarantine)?S.meta.quarantine.filter(x=>x&&Object.hasOwn(x,'backup')):[]),...quarantine]);
+}
 (async function boot(){
   try{if(!window.indexedDB)throw new Error('no indexedDB');await Promise.race([DB.open(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),2500))]);}
-  catch(e){DB.useMemory();S.memOnly=true;}
+  catch(e){DB.useMemory();S.memOnly=true;refreshSaveStatus();}
   let sessions=[],meta=[];
-  try{[sessions,meta]=await Promise.all([DB.all('sessions'),DB.all('meta')]);}catch(e){DB.useMemory();S.memOnly=true;}
-  sessions.forEach(s=>S.sessions.set(s.id,s));
-  S.meta=(meta.find(m=>m.k==='meta')||{}).v||{};
-  if(window.LIFTLOG_PREVIEW&&!S.meta.demoRemoved&&!sessions.some(x=>x.demo)){try{await loadDemo();}catch(e){}}
+  try{[sessions,meta]=await Promise.all([DB.all('sessions'),DB.all('meta')]);}catch(e){DB.useMemory();S.memOnly=true;refreshSaveStatus();}
+  loadStored(sessions,(meta.find(m=>m.k==='meta')||{}).v);
+  if(window.LIFTLOG_PREVIEW&&!S.meta.demoRemoved&&!sessions.some(x=>x?.demo)){try{await loadDemo();}catch(e){}}
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
-  render();Sync.run();
-  if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&!window.LIFTLOG_PREVIEW)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if(S.meta.restTimer)Rest.restore(S.meta.restTimer);render();Sync.run();registerAppWorker();
 })();
 </script>
 </body>
